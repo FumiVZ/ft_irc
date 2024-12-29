@@ -1,0 +1,7 @@
+{
+	"files.associations": {
+		"thread": "cpp",
+		"utility": "cpp",
+		"condition_variable": "cpp"
+	}
+}
