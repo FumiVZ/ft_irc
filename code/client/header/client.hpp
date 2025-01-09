@@ -4,6 +4,14 @@
 #include <string>
 #include <vector>
 
-int client();
+class Client
+{
+private:
+public:
+	Client(/* args */);
+	~Client();
+};
+
+
 
 #endif

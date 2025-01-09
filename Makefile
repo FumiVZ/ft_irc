@@ -1,4 +1,4 @@
-NAME = IRC 
+NAME = ircserv
 CC = c++
 CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD -MP -g3
 LDFLAGS = -lpthread
