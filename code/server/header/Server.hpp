@@ -23,7 +23,7 @@ extern "C" {
 #include <functional>
 #include <memory>
 #include <pthread.h>
-#include <client.hpp>
+#include <Client.hpp>
 #include <poll.h>
 
 class Server
