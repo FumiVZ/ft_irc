@@ -34,40 +34,98 @@ Server::~Server()
 	close(this->socketfd);
 }
 
-int server()
+void serverCreation(Server &server)
 {
-	Server server("password");
-	std::vector<pollfd> fds;
-	pollfd serverPoll;
-
 	server.setSocketfd(socket(AF_INET, SOCK_STREAM, 0));
+
 	if (server.getSocketfd() < 0)
 	{
-		std::cerr << "Erreur lors de la création du socket" << std::endl;
-		return 1;
+		std::cerr << "Erreur de création de socket: " << strerror(errno) << std::endl;
+		return;
+	}
+
+	int opt = 1;
+	if (setsockopt(server.getSocketfd(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+	{
+		std::cerr << "Erreur de setsockopt: " << strerror(errno) << std::endl;
+		close(server.getSocketfd());
+		return;
 	}
 
 	if (bind(server.getSocketfd(), (struct sockaddr *)&server.getServerAddress(), sizeof(server.getServerAddress())) < 0)
 	{
-		std::cerr << "Erreur lors du binding: " << strerror(errno) << std::endl;
-		return 1;
+		std::cerr << "Erreur de bind: " << strerror(errno) << std::endl;
+		close(server.getSocketfd());
+		return;
 	}
 
-	if (listen(server.getSocketfd(), SOMAXCONN) < 0)
+	if (listen(server.getSocketfd(), 5) < 0)
 	{
-		std::cerr << "Erreur lors de l'écoute: " << strerror(errno) << std::endl;
-		return 1;
+		std::cerr << "Erreur de listen: " << strerror(errno) << std::endl;
+		close(server.getSocketfd());
+		return;
+	}
+}
+
+struct sockaddr_in acceptClient(Server &server, std::vector<pollfd> &fds)
+{
+	struct sockaddr_in clientAddress;
+	socklen_t clientAddressSize = sizeof(clientAddress);
+	int clientSocket = accept(server.getSocketfd(), (struct sockaddr *)&clientAddress, &clientAddressSize);
+
+	if (clientSocket < 0)
+	{
+		std::cerr << "Erreur de accept: " << strerror(errno) << std::endl;
+		return clientAddress;
 	}
 
+	pollfd clientPoll;
+	clientPoll.fd = clientSocket;
+	clientPoll.events = POLLIN;
+	fds.push_back(clientPoll);
+	std::cout << "Client connecté" << std::endl;
+	return clientAddress;
+}
+
+void receiveMessage(int clientSocket)
+{
+	char buffer[1024] = {0};
+	int n = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
+	if (n < 0)
+	{
+		std::cerr << "Erreur de recv: " << strerror(errno) << std::endl;
+		close(clientSocket);
+		return;
+	}
+	else if (n == 0)
+	{
+		std::cout << "Client déconnecté" << std::endl;
+		close(clientSocket);
+	}
+	else
+	{
+		buffer[n] = '\0';
+		std::cout << "Message reçu (taille " << n << "): '" << buffer << "'" << std::endl;
+		parseCommand(buffer);
+	}
+}
+
+int server()
+{
+	Server server("password");
+	std::vector<pollfd> fds;
+	
+	serverCreation(server);
+	
+	pollfd serverPoll;
 	serverPoll.fd = server.getSocketfd();
 	serverPoll.events = POLLIN;
 	fds.push_back(serverPoll);
-
 	std::cout << "Serveur démarré sur le port " << PORT << std::endl;
-
 	while (true)
 	{
-		if (poll(fds.data(), fds.size(), -1) < 0)
+		int poll_result = poll(&fds[0], fds.size(), -1);
+		if (poll_result < 0)
 		{
 			std::cerr << "Erreur de poll: " << strerror(errno) << std::endl;
 			continue;
@@ -78,42 +136,9 @@ int server()
 			if (fds[i].revents & POLLIN)
 			{
 				if (fds[i].fd == server.getSocketfd())
-				{
-					struct sockaddr_in clientAddr;
-					socklen_t clientLen = sizeof(clientAddr);
-					int clientSocket = accept(server.getSocketfd(), (struct sockaddr *)&clientAddr, &clientLen);
-
-					if (clientSocket < 0)
-					{
-						std::cerr << "Erreur d'acceptation: " << strerror(errno) << std::endl;
-						continue;
-					}
-
-					pollfd clientPoll;
-					clientPoll.fd = clientSocket;
-					clientPoll.events = POLLIN;
-					fds.push_back(clientPoll);
-
-					std::cout << "Nouvelle connexion acceptée" << std::endl;
-				}
+					acceptClient(server, fds);
 				else
-				{
-					char buffer[1024] = {0};
-					ssize_t bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
-
-					if (bytesRead <= 0)
-					{
-						close(fds[i].fd);
-						fds.erase(fds.begin() + i);
-						i--;
-						std::cout << "Client déconnecté" << std::endl;
-					}
-					else
-					{
-						std::cout << "Message reçu : " << buffer << std::endl;
-						parseCommand(buffer);
-					}
-				}
+					receiveMessage(fds[i].fd);
 			}
 		}
 	}
