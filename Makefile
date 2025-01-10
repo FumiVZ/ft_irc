@@ -18,7 +18,8 @@ ALL_HEADERS = $(SERVER_HEADERS)
 SERVER_SRCS = $(addprefix $(SERVER_DIR), \
 					Client.cpp \
 					Server.cpp \
-				)
+					Parse_cmd.cpp \
+					)
 
 SRCS = $(SERVER_SRCS) \
 		$(SRCS_DIR)main.cpp
