@@ -4,18 +4,24 @@ CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD -MP -g3
 
 BUILD_DIR = build
 SRCS_DIR = code/
-CLIENT_DIR = $(SRCS_DIR)client/
 SERVER_DIR = $(SRCS_DIR)server/
-
 HEADERS_DIR = header/
-CLIENT_HEADERS = $(addprefix $(CLIENT_DIR), $(HEADERS_DIR)client.hpp)
-SERVER_HEADERS = $(addprefix $(SERVER_DIR), $(HEADERS_DIR)server.hpp)
-ALL_HEADERS = $(CLIENT_HEADERS) $(SERVER_HEADERS)
 
-MAIN_SRC = $(SRCS_DIR)main.cpp
-CLIENT_SRC = $(addprefix $(CLIENT_DIR), client.cpp)
-SERVER_SRC = $(addprefix $(SERVER_DIR), server.cpp parse_cmd.cpp)
-SRCS = $(MAIN_SRC) $(CLIENT_SRC) $(SERVER_SRC)
+SERVER_HEADERS = $(addprefix $(SERVER_DIR), \
+					$(addprefix $(HEADERS_DIR), \
+						Client.hpp \
+						Server.hpp \
+						) \
+					)
+
+ALL_HEADERS = $(SERVER_HEADERS)
+SERVER_SRCS = $(addprefix $(SERVER_DIR), \
+					Client.cpp \
+					Server.cpp \
+				)
+
+SRCS = $(SERVER_SRCS) \
+		$(SRCS_DIR)main.cpp
 
 INC_DIR = -I$(CLIENT_DIR)header -I$(SERVER_DIR)header
 
@@ -30,7 +36,7 @@ $(BUILD_DIR):
 	@mkdir -p $(BUILD_DIR)/$(SERVER_DIR)
 
 $(NAME): $(BUILD_DIR) $(OBJS)
-	@$(CC) $(CPPFLAGS) $(OBJS) $(LDFLAGS) -o $(NAME)
+	@$(CC) $(CPPFLAGS) $(OBJS) -o $(NAME)
 	@echo "Build complete: $(NAME)"
 
 $(BUILD_DIR)/$(SRCS_DIR)%.o: $(SRCS_DIR)%.cpp $(ALL_HEADERS)
