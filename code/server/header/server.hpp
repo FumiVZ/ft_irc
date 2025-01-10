@@ -24,6 +24,7 @@ extern "C" {
 #include <memory>
 #include <pthread.h>
 #include <client.hpp>
+#include <poll.h>
 
 class Server
 {

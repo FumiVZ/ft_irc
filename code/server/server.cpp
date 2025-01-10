@@ -1,6 +1,8 @@
 #include <server.hpp>
 #include <cstring> // pour strerror
 #include <errno.h> // pour errno
+#include <vector>
+
 void Server::setSocketfd(int socketfd)
 {
 	this->socketfd = socketfd;
@@ -38,48 +40,84 @@ Server::~Server()
 int server()
 {
 	Server server("password");
+	std::vector<pollfd> fds;
+	pollfd serverPoll;
+
 	server.setSocketfd(socket(AF_INET, SOCK_STREAM, 0));
 	if (server.getSocketfd() < 0)
 	{
-		std::cerr << "Error creating socket" << std::endl;
+		std::cerr << "Erreur lors de la création du socket" << std::endl;
 		return 1;
 	}
 
 	if (bind(server.getSocketfd(), (struct sockaddr *)&server.getServerAddress(), sizeof(server.getServerAddress())) < 0)
 	{
-		std::cerr << "Error binding socket: " << strerror(errno) << " (errno: " << errno << ")" << std::endl;
+		std::cerr << "Erreur lors du binding: " << strerror(errno) << std::endl;
 		return 1;
 	}
 
-	if (listen(server.getSocketfd(), 5) < 0)
+	if (listen(server.getSocketfd(), SOMAXCONN) < 0)
 	{
-		std::cerr << "Error listening on socket: " << strerror(errno) << " (errno: " << errno << ")" << std::endl;
+		std::cerr << "Erreur lors de l'écoute: " << strerror(errno) << std::endl;
 		return 1;
 	}
 
-	std::cout << "Server started on port " << PORT << std::endl;
+	serverPoll.fd = server.getSocketfd();
+	serverPoll.events = POLLIN;
+	fds.push_back(serverPoll);
 
-	struct sockaddr_in clientAddr;
-	socklen_t clientLen = sizeof(clientAddr);
+	std::cout << "Serveur démarré sur le port " << PORT << std::endl;
 
 	while (true)
 	{
-		int clientSocket = accept(server.getSocketfd(), (struct sockaddr *)&clientAddr, &clientLen);
-		if (clientSocket < 0)
+		if (poll(fds.data(), fds.size(), -1) < 0)
 		{
-			std::cerr << "Error accepting connection: " << strerror(errno) << std::endl;
+			std::cerr << "Erreur de poll: " << strerror(errno) << std::endl;
 			continue;
 		}
-		std::cout << "Nouvelle connexion acceptée" << std::endl;
-		char buffer[1024] = {0};
-		ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
-		if (bytesRead > 0)
+
+		for (size_t i = 0; i < fds.size(); i++)
 		{
-			std::cout << "Message reçu : " << buffer << std::endl;
+			if (fds[i].revents & POLLIN)
+			{
+				if (fds[i].fd == server.getSocketfd())
+				{
+					struct sockaddr_in clientAddr;
+					socklen_t clientLen = sizeof(clientAddr);
+					int clientSocket = accept(server.getSocketfd(), (struct sockaddr *)&clientAddr, &clientLen);
+
+					if (clientSocket < 0)
+					{
+						std::cerr << "Erreur d'acceptation: " << strerror(errno) << std::endl;
+						continue;
+					}
+
+					pollfd clientPoll;
+					clientPoll.fd = clientSocket;
+					clientPoll.events = POLLIN;
+					fds.push_back(clientPoll);
+
+					std::cout << "Nouvelle connexion acceptée" << std::endl;
+				}
+				else
+				{
+					char buffer[1024] = {0};
+					ssize_t bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
+
+					if (bytesRead <= 0)
+					{
+						close(fds[i].fd);
+						fds.erase(fds.begin() + i);
+						i--;
+						std::cout << "Client déconnecté" << std::endl;
+					}
+					else
+					{
+						std::cout << "Message reçu : " << buffer << std::endl;
+					}
+				}
+			}
 		}
-
-		close(clientSocket);
 	}
-
 	return 0;
 }
