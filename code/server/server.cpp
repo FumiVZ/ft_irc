@@ -1,7 +1,4 @@
 #include <server.hpp>
-#include <cstring> // pour strerror
-#include <errno.h> // pour errno
-#include <vector>
 
 void Server::setSocketfd(int socketfd)
 {
@@ -114,6 +111,7 @@ int server()
 					else
 					{
 						std::cout << "Message reçu : " << buffer << std::endl;
+						parseCommand(buffer);
 					}
 				}
 			}

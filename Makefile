@@ -1,7 +1,6 @@
 NAME = ircserv
 CC = c++
 CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD -MP -g3
-LDFLAGS = -lpthread
 
 BUILD_DIR = build
 SRCS_DIR = code/
@@ -14,8 +13,8 @@ SERVER_HEADERS = $(addprefix $(SERVER_DIR), $(HEADERS_DIR)server.hpp)
 ALL_HEADERS = $(CLIENT_HEADERS) $(SERVER_HEADERS)
 
 MAIN_SRC = $(SRCS_DIR)main.cpp
-CLIENT_SRC = $(CLIENT_DIR)client.cpp
-SERVER_SRC = $(SERVER_DIR)server.cpp
+CLIENT_SRC = $(addprefix $(CLIENT_DIR), client.cpp)
+SERVER_SRC = $(addprefix $(SERVER_DIR), server.cpp parse_cmd.cpp)
 SRCS = $(MAIN_SRC) $(CLIENT_SRC) $(SERVER_SRC)
 
 INC_DIR = -I$(CLIENT_DIR)header -I$(SERVER_DIR)header

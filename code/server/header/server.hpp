@@ -25,6 +25,26 @@ extern "C" {
 #include <pthread.h>
 #include <client.hpp>
 #include <poll.h>
+#include <cstring>
+#include <errno.h>
+#include <vector>
+
+enum Command
+{
+	PASS,
+	NICK,
+	USER,
+	OPER,
+	MODE,
+	QUIT,
+	JOIN,
+	PART,
+	TOPIC,
+	KICK,
+	PRIVMSG,
+	NOTICE,
+	SENDFILE,
+};
 
 class Server
 {
@@ -43,5 +63,5 @@ class Server
 };
 
 int server();
-
+void	parseCommand(char *buffer);
 #endif
