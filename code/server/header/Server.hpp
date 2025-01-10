@@ -29,22 +29,6 @@ extern "C" {
 #include <errno.h>
 #include <vector>
 
-enum Command
-{
-	PASS,
-	NICK,
-	USER,
-	OPER,
-	MODE,
-	QUIT,
-	JOIN,
-	PART,
-	TOPIC,
-	KICK,
-	PRIVMSG,
-	NOTICE,
-	SENDFILE,
-};
 
 class Server
 {

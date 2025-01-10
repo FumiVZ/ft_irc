@@ -37,13 +37,11 @@ Server::~Server()
 void serverCreation(Server &server)
 {
 	server.setSocketfd(socket(AF_INET, SOCK_STREAM, 0));
-
 	if (server.getSocketfd() < 0)
 	{
 		std::cerr << "Erreur de création de socket: " << strerror(errno) << std::endl;
 		return;
 	}
-
 	int opt = 1;
 	if (setsockopt(server.getSocketfd(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 	{
@@ -51,14 +49,12 @@ void serverCreation(Server &server)
 		close(server.getSocketfd());
 		return;
 	}
-
 	if (bind(server.getSocketfd(), (struct sockaddr *)&server.getServerAddress(), sizeof(server.getServerAddress())) < 0)
 	{
 		std::cerr << "Erreur de bind: " << strerror(errno) << std::endl;
 		close(server.getSocketfd());
 		return;
 	}
-
 	if (listen(server.getSocketfd(), 5) < 0)
 	{
 		std::cerr << "Erreur de listen: " << strerror(errno) << std::endl;
@@ -72,13 +68,11 @@ struct sockaddr_in acceptClient(Server &server, std::vector<pollfd> &fds)
 	struct sockaddr_in clientAddress;
 	socklen_t clientAddressSize = sizeof(clientAddress);
 	int clientSocket = accept(server.getSocketfd(), (struct sockaddr *)&clientAddress, &clientAddressSize);
-
 	if (clientSocket < 0)
 	{
 		std::cerr << "Erreur de accept: " << strerror(errno) << std::endl;
 		return clientAddress;
 	}
-
 	pollfd clientPoll;
 	clientPoll.fd = clientSocket;
 	clientPoll.events = POLLIN;
@@ -114,9 +108,7 @@ int server()
 {
 	Server server("password");
 	std::vector<pollfd> fds;
-	
 	serverCreation(server);
-	
 	pollfd serverPoll;
 	serverPoll.fd = server.getSocketfd();
 	serverPoll.events = POLLIN;
@@ -130,7 +122,6 @@ int server()
 			std::cerr << "Erreur de poll: " << strerror(errno) << std::endl;
 			continue;
 		}
-
 		for (size_t i = 0; i < fds.size(); i++)
 		{
 			if (fds[i].revents & POLLIN)
