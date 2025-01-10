@@ -33,6 +33,7 @@ class Server
 		std::string passwd;
 		int socketfd;
 		sockaddr_in serverAddress;
+
 	public:
 		Server(const std::string& password = "");
 		~Server();
