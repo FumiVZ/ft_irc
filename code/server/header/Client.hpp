@@ -3,6 +3,7 @@
 
 #include <Channel.hpp>
 #include <vector>
+#include <string>
 
 class Client
 {
@@ -12,10 +13,10 @@ private:
 	std::string ip;
 	std::string hostname;
 	std::string full_client_id;
-	bool is_auth;
 	std::vector<Channel> channels;
 
 public:
+	bool is_auth;
 	Client(/* args */);
 	~Client();
 };
