@@ -25,11 +25,14 @@ extern "C" {
 #include <pthread.h>
 #include <Client.hpp>
 #include <poll.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <replies.hpp>
 
 class Server
 {
 	private:
-		std::map<std::string, Client> users;
+		std::map<int, Client> users;
 		std::string passwd;
 		int socketfd;
 		sockaddr_in serverAddress;
@@ -41,6 +44,7 @@ class Server
 		void setServerAddress(struct sockaddr_in serverAddress);
 		int getSocketfd();
 		void setSocketfd(int socketfd);
+		void addUser(int socketfd, Client client);
 };
 
 int server();
