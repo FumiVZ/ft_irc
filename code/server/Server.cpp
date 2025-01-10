@@ -34,6 +34,16 @@ Server::~Server()
 	close(this->socketfd);
 }
 
+bool Server::authenticateClient(int clientSocket, const char *password)
+{
+	if (this->passwd == password)
+	{
+		this->users[clientSocket] = Client(clientSocket);
+		return true;
+	}
+	return false;
+}
+
 void serverCreation(Server &server)
 {
 	server.setSocketfd(socket(AF_INET, SOCK_STREAM, 0));
@@ -81,7 +91,12 @@ struct sockaddr_in acceptClient(Server &server, std::vector<pollfd> &fds)
 	return clientAddress;
 }
 
-void receiveMessage(int clientSocket)
+bool Server::isClientAuthenticated(int clientSocket)
+{
+	return this->users.find(clientSocket) != this->users.end();
+}
+
+void receiveMessage(Server &server, int clientSocket)
 {
 	char buffer[1024] = {0};
 	int n = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
@@ -100,7 +115,14 @@ void receiveMessage(int clientSocket)
 	{
 		buffer[n] = '\0';
 		std::cout << "Message reçu (taille " << n << "): '" << buffer << "'" << std::endl;
-		parseCommand(buffer);
+		if (strncmp(buffer, "PASS", 4) != 0 && !server.isClientAuthenticated(clientSocket))
+		{
+			const char *msg = "Erreur : Vous devez d'abord vous authentifier avec PASS\r\n";
+			send(clientSocket, msg, strlen(msg), 0);
+			return;
+		}
+		else if (server.isClientAuthenticated(clientSocket))
+			return parseCommand(server, clientSocket, buffer);1
 	}
 }
 
@@ -129,7 +151,7 @@ int server()
 				if (fds[i].fd == server.getSocketfd())
 					acceptClient(server, fds);
 				else
-					receiveMessage(fds[i].fd);
+					receiveMessage(server, fds[i].fd);
 			}
 		}
 	}

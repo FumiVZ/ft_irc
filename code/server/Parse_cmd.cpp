@@ -1,8 +1,19 @@
 #include <Server.hpp>
 
-void pass(char *buffer)
+void pass(Server &server, int clientSocket, char *buffer)
 {
-	std::cout << "PASS: " << buffer << std::endl;
+	while (*buffer && isspace(*buffer))
+		buffer++;
+	if (server.authenticateClient(clientSocket, buffer))
+	{
+		const char *msg = "Authentification réussie\r\n";
+		send(clientSocket, msg, strlen(msg), 0);
+	}
+	else
+	{
+		const char *msg = "Erreur : Mot de passe incorrect\r\n";
+		send(clientSocket, msg, strlen(msg), 0);
+	}
 }
 
 void nick(char *buffer)
@@ -17,7 +28,7 @@ void user(char *buffer)
 
 void oper(char *buffer)
 {
-	std::cout << "OPER: " << buffer	<< std::endl;
+	std::cout << "OPER: " << buffer << std::endl;
 }
 
 void mode(char *buffer)
@@ -65,17 +76,38 @@ void sendfile(char *buffer)
 	std::cout << "SENDFILE: " << buffer << std::endl;
 }
 
-
-void parseCommand(char *buffer)
+void parseCommand(Server &server, int clientSocket, char *buffer)
 {
+	(void)server;
+	(void)clientSocket;
 	size_t i = 0;
 	const char *commands[] = {
-		"PASS", "NICK", "USER", "OPER", "MODE", "QUIT", "JOIN",
-		"PART", "TOPIC", "KICK", "PRIVMSG", "NOTICE", "SENDFILE",
+		"NICK",
+		"USER",
+		"OPER",
+		"MODE",
+		"QUIT",
+		"JOIN",
+		"PART",
+		"TOPIC",
+		"KICK",
+		"PRIVMSG",
+		"NOTICE",
+		"SENDFILE",
 	};
 	void (*functions[])(char *) = {
-		&pass, &nick, &user, &oper, &mode, &quit, &join,
-		&part, &topic, &kick, &privmsg, &notice, &sendfile,
+		&nick,
+		&user,
+		&oper,
+		&mode,
+		&quit,
+		&join,
+		&part,
+		&topic,
+		&kick,
+		&privmsg,
+		&notice,
+		&sendfile,
 	};
 	const size_t num_commands = sizeof(commands) / sizeof(commands[0]);
 	bool commandFound = false;

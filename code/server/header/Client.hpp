@@ -14,13 +14,16 @@ private:
 	std::string hostname;
 	std::string full_client_id;
 	std::vector<Channel> channels;
+	int socketfd;
+	bool is_auth;
 
 public:
-	bool is_auth;
-	Client(/* args */);
+	Client() : socketfd(-1), is_auth(false) {};
+	Client(int socketfd);
 	~Client();
+	bool isAuthentified();
+	void setAuthentified();
+	int getSocketfd() const;
 };
-
-
 
 #endif

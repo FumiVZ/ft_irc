@@ -33,7 +33,7 @@ extern "C" {
 class Server
 {
 	private:
-		std::map<std::string, Client> users;
+		std::map<int, Client> users;
 		std::string passwd;
 		int socketfd;
 		sockaddr_in serverAddress;
@@ -45,8 +45,10 @@ class Server
 		void setServerAddress(struct sockaddr_in serverAddress);
 		int getSocketfd();
 		void setSocketfd(int socketfd);
+		bool authenticateClient(int clientSocket, const char *password);
+		bool isClientAuthenticated(int clientSocket);
 };
 
 int server();
-void	parseCommand(char *buffer);
+void	parseCommand(Server &server, int clientSocket, char *buffer);
 #endif
