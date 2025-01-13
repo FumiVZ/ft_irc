@@ -16,6 +16,7 @@ private:
 	std::string _prefix;
 	std::string _command;
 	std::vector<std::string> _parameters;
+	int _nb_parameters;
 	std::string _text;
 
 	void parse();
