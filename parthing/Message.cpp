@@ -75,6 +75,7 @@ void Message::parse()
 		return;
 	}
 
+	_nb_parameters = 0;
 	while (!msg.empty())
 	{
 		if (msg[0] == ':')
@@ -87,10 +88,12 @@ void Message::parse()
 		if (pos == std::string::npos)
 		{
 			_parameters.push_back(msg.substr(0, msg.length() - 2));
+			_nb_parameters++;
 			break;
 		}
 		_parameters.push_back(msg.substr(0, pos));
 		msg = msg.substr(pos + 1);
+		_nb_parameters++;
 	}
 
 	if (!isValidMessage())
@@ -138,6 +141,7 @@ std::ostream &operator<<(std::ostream &os, const Message &msg)
 	os << "Raw Message: " << msg.getRawMessage() << std::endl;
 	os << "Prefix: " << msg.getPrefix() << std::endl;
 	os << "Command: " << msg.getCommand() << std::endl;
+	os << "Number of parameters: " << msg.getParameters().size() << std::endl;
 	os << "Parameters: ";
 	for (const auto &param : msg.getParameters())
 		os << param << " ";

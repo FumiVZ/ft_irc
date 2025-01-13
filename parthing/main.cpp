@@ -87,10 +87,10 @@ void testMaxLength()
 int main()
 {
 	testValidMessage();
-	// testNoPrefix();
-	// testNoParameters();
-	// testInvalidMessage();
-	// testMaxLength();
+	testNoPrefix();
+	testNoParameters();
+	testInvalidMessage();
+	testMaxLength();
 
 	std::cout << "All tests passed!" << std::endl;
 	return 0;
