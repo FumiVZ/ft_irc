@@ -16,6 +16,7 @@ private:
 	std::string _prefix;
 	std::string _command;
 	std::vector<std::string> _parameters;
+	std::string _text;
 
 	void parse();
 	bool isValidMessage() const;
@@ -27,6 +28,7 @@ public:
 	const std::string &getCommand() const;
 	const std::vector<std::string> &getParameters() const;
 	const std::string &getRawMessage() const;
+	const std::string &getText() const;
 };
 
 std::ostream &operator<<(std::ostream &os, const Message &msg);

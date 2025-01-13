@@ -12,7 +12,7 @@ Message::Message(const std::string &message) : _raw_message(message)
 	{
 		throw std::invalid_argument("Message too short");
 	}
-	if (message.length() > MAX_MESSAGE_SIZE - 2)
+	if (message.length() > MAX_MESSAGE_SIZE)
 	{
 		throw std::invalid_argument("Message too long");
 	}
@@ -20,14 +20,14 @@ Message::Message(const std::string &message) : _raw_message(message)
 	{
 		throw std::invalid_argument("Message starts with a space");
 	}
-	// if (message[message.length() - 1] != '\n')
-	// {
-	// 	throw std::invalid_argument("Message does not end with a newline");
-	// }
-	// if (message[message.length() - 2] != '\r')
-	// {
-	// 	throw std::invalid_argument("Message does not end with a carriage return");
-	// }
+	if (message[message.length() - 1] != '\n')
+	{
+		throw std::invalid_argument("Message does not end with a newline");
+	}
+	if (message[message.length() - 2] != '\r')
+	{
+		throw std::invalid_argument("Message does not end with a carriage return");
+	}
 	parse();
 }
 
@@ -59,7 +59,7 @@ void Message::parse()
 	}
 	else
 	{
-		_command = msg;
+		_command = msg.substr(0, msg.length() - 2);
 	}
 
 	for (char c : _command)
@@ -79,21 +79,18 @@ void Message::parse()
 	{
 		if (msg[0] == ':')
 		{
-			_parameters.push_back(msg.substr(1));
+			_text = msg.substr(1, msg.length() - 3);
 			break;
 		}
 
 		pos = msg.find(' ');
-		if (pos != std::string::npos)
+		if (pos == std::string::npos)
 		{
-			_parameters.push_back(msg.substr(0, pos));
-			msg = msg.substr(pos + 1);
-		}
-		else
-		{
-			_parameters.push_back(msg);
+			_parameters.push_back(msg.substr(0, msg.length() - 2));
 			break;
 		}
+		_parameters.push_back(msg.substr(0, pos));
+		msg = msg.substr(pos + 1);
 	}
 
 	if (!isValidMessage())
@@ -131,6 +128,11 @@ const std::string &Message::getRawMessage() const
 	return _raw_message;
 }
 
+const std::string &Message::getText() const
+{
+	return _text;
+}
+
 std::ostream &operator<<(std::ostream &os, const Message &msg)
 {
 	os << "Raw Message: " << msg.getRawMessage() << std::endl;
@@ -139,6 +141,8 @@ std::ostream &operator<<(std::ostream &os, const Message &msg)
 	os << "Parameters: ";
 	for (const auto &param : msg.getParameters())
 		os << param << " ";
+	os << std::endl;
+	os << "Text: " << msg.getText() << std::endl;
 	os << std::endl;
 	return os;
 }
