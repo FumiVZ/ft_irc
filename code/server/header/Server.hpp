@@ -45,6 +45,7 @@ class Server
 		int getSocketfd();
 		void setSocketfd(int socketfd);
 		void addUser(int socketfd, Client client);
+		void broadcast(std::string message);
 };
 
 int server();

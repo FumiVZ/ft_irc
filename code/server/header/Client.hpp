@@ -4,6 +4,8 @@
 #include <Channel.hpp>
 #include <vector>
 #include <string>
+
+class Channel;
 class Client
 {
 private:
@@ -14,6 +16,16 @@ private:
 	std::string full_client_id;
 	bool is_auth;
 	std::vector<Channel> channels;
+	char mode;
+	/*
+	a - user is flagged as away;
+    i - marks a users as invisible;
+    w - user receives wallops;
+    r - restricted user connection;
+    o - operator flag;
+    O - local operator flag;
+    s - marks a user for receipt of server notices.
+	*/
 	int socketfd;
 
 public:
@@ -36,7 +48,5 @@ public:
 
 	void sendReply(std::string code, std::string message);
 };
-
-
 
 #endif
