@@ -1,6 +1,6 @@
 #include <Server.hpp>
-#include <cstring> // pour strerror
-#include <errno.h> // pour errno
+#include <cstring>
+#include <errno.h>
 #include <vector>
 
 void Server::setSocketfd(int socketfd)

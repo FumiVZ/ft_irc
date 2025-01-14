@@ -1,9 +1,11 @@
 #ifndef CHANNEL_HPP
 # define CHANNEL_HPP
+#include <Client.hpp>
+
 class Channel
 {
 private:
-	/* data */
+	Client &owner;
 public:
 	Channel(/* args */);
 	~Channel();
