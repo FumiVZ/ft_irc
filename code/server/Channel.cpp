@@ -15,3 +15,6 @@ void Channel::broadcast(std::string message)
 		it->sendReply("PRIVMSG", message);
 	}
 }
+
+std::string Channel::getName() { return this->name; };
+std::vector<Client> &Channel::getClients() { return this->clients; };

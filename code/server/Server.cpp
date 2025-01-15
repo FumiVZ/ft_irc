@@ -150,3 +150,11 @@ int server()
 	}
 	return 0;
 }
+
+void Server::broadcast(std::string message)
+{
+	for (std::map<int, Client>::iterator it = this->users.begin(); it != this->users.end(); ++it)
+	{
+		send(it->first, message.c_str(), message.length(), 0);
+	}
+}
