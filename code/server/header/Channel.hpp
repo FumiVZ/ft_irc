@@ -1,11 +1,18 @@
 #ifndef CHANNEL_HPP
 # define CHANNEL_HPP
+#include <Client.hpp>
+
+class Client;
 class Channel
 {
 private:
-	/* data */
+	std::string name;
+	//Client *owner;
+	std::vector<Client> clients;
 public:
-	Channel(/* args */);
+	//Channel(std::string name, Client *owner);
+	Channel(std::string name);
+	void broadcast(std::string message);
 	~Channel();
 };
 

@@ -12,6 +12,7 @@ SERVER_HEADERS = $(addprefix $(SERVER_DIR), \
 						Client.hpp \
 						Server.hpp \
 						Channel.hpp \
+						replies.hpp \
 						) \
 					)
 

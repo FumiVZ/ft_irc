@@ -27,8 +27,10 @@ extern "C" {
 #include <poll.h>
 #include <cstring>
 #include <errno.h>
-#include <vector>
 
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <replies.hpp>
 
 class Server
 {
@@ -37,7 +39,6 @@ class Server
 		std::string passwd;
 		int socketfd;
 		sockaddr_in serverAddress;
-
 	public:
 		Server(const std::string& password = "");
 		~Server();
@@ -47,6 +48,10 @@ class Server
 		void setSocketfd(int socketfd);
 		bool authenticateClient(int clientSocket, const char *password);
 		bool isClientAuthenticated(int clientSocket);
+		void addUser(int socketfd, Client client);
+		void broadcast(std::string message);
+		Client & getClient(int socketfd);
+		const std::string &getPasswd();
 };
 
 int server();
