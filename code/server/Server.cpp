@@ -29,6 +29,7 @@ Server::Server(const std::string &password)
 	this->serverAddress.sin_port = htons(PORT);
 }
 
+
 Server::~Server()
 {
 	close(this->socketfd);
@@ -121,8 +122,8 @@ void receiveMessage(Server &server, int clientSocket)
 			send(clientSocket, msg, strlen(msg), 0);
 			return;
 		}
-		else if (server.isClientAuthenticated(clientSocket))
-			return parseCommand(server, clientSocket, buffer);1
+		else if (strncmp(buffer, "PASS", 4) == 0)
+			
 	}
 }
 
