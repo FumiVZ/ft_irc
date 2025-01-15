@@ -61,9 +61,9 @@ void Message::parse()
 	{
 		_command = msg.substr(0, msg.length() - 2);
 	}
-
-	for (char c : _command)
+	for (size_t i = 0; i < _command.length(); i++)
 	{
+		char c = _command[i];
 		if (!std::isupper(c))
 		{
 			throw std::invalid_argument("Command is not entirely uppercase");
@@ -143,8 +143,6 @@ std::ostream &operator<<(std::ostream &os, const Message &msg)
 	os << "Command: " << msg.getCommand() << std::endl;
 	os << "Number of parameters: " << msg.getParameters().size() << std::endl;
 	os << "Parameters: ";
-	for (const auto &param : msg.getParameters())
-		os << param << " ";
 	os << std::endl;
 	os << "Text: " << msg.getText() << std::endl;
 	os << std::endl;

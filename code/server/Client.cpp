@@ -8,14 +8,24 @@ Client::Client(int socketfd, std::string ip, std::string hostname) :
 	ip(ip),
 	hostname(hostname),
 	full_client_id(""),
-	is_auth(true),
 	channels(),
-	socketfd(socketfd)
+	socketfd(socketfd),
+	is_auth(false)
 {};
 Client::~Client() {};
 
 void Client::setIp(std::string ip) { this->ip = ip; }
 std::string Client::getIp() { return this->ip; }
+
+bool Client::isAuthentified()
+{
+	return this->is_auth;
+}
+
+void Client::setAuthentified()
+{
+	this->is_auth = true;
+}
 
 int client()
 {
@@ -23,7 +33,7 @@ int client()
 }
 
 void Client::setSocketfd(int socketfd) { this->socketfd = socketfd; }
-int Client::getSocketfd() { return this->socketfd; }
+int Client::getSocketfd() const { return this->socketfd; }
 void Client::setAuth(bool auth) { this->is_auth = auth; }
 bool Client::getAuth() { return this->is_auth; }
 std::string Client::getNickname() { return this->nickname; }

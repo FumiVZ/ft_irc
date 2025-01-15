@@ -7,13 +7,14 @@ class Channel
 {
 private:
 	std::string name;
-	Client *owner;
+	//Client *owner;
 	std::vector<Client> clients;
 
 	std::string topic;
-	char mode;
+	//char mode;
 public:
-	Channel(std::string name, Client *owner);
+	//Channel(std::string name, Client *owner);
+	Channel(std::string name);
 	void broadcast(std::string message);
 	std::string getName();
 	std::vector<Client> &getClients();

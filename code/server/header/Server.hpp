@@ -25,6 +25,9 @@ extern "C" {
 #include <pthread.h>
 #include <Client.hpp>
 #include <poll.h>
+#include <cstring>
+#include <errno.h>
+
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <replies.hpp>
@@ -36,7 +39,6 @@ class Server
 		std::string passwd;
 		int socketfd;
 		sockaddr_in serverAddress;
-
 	public:
 		Server(const std::string& password = "");
 		~Server();
@@ -44,10 +46,14 @@ class Server
 		void setServerAddress(struct sockaddr_in serverAddress);
 		int getSocketfd();
 		void setSocketfd(int socketfd);
+		bool authenticateClient(int clientSocket, const char *password);
+		bool isClientAuthenticated(int clientSocket);
 		void addUser(int socketfd, Client client);
 		void broadcast(std::string message);
+		Client & getClient(int socketfd);
+		const std::string &getPasswd();
 };
 
 int server();
-
+void	parseCommand(Server &server, int clientSocket, char *buffer);
 #endif
