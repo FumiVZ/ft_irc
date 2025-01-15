@@ -1,4 +1,24 @@
 #include <Server.hpp>
+#include <cstring>
+#include <errno.h>
+#include <vector>
+
+std::string get_ip(struct in_addr *in)
+{
+	char clientIp[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, in, clientIp, INET_ADDRSTRLEN);
+	return clientIp;
+}
+
+std::string get_hostname(struct sockaddr_in &clientAddr)
+{
+	char clientHostname[NI_MAXHOST];
+	if (getnameinfo((struct sockaddr *)&clientAddr, sizeof(clientAddr), clientHostname, NI_MAXHOST, NULL, 0, 0) != 0)
+	{
+		return get_ip(&clientAddr.sin_addr);
+	}
+	return clientHostname;
+}
 
 void Server::setSocketfd(int socketfd)
 {
@@ -20,6 +40,11 @@ void Server::setServerAddress(struct sockaddr_in serverAddress)
 	this->serverAddress = serverAddress;
 }
 
+Client &Server::getClient(int socketfd)
+{
+	return this->users.at(socketfd);
+}
+
 Server::Server(const std::string &password)
 {
 	this->passwd = password;
@@ -29,20 +54,14 @@ Server::Server(const std::string &password)
 	this->serverAddress.sin_port = htons(PORT);
 }
 
-
 Server::~Server()
 {
 	close(this->socketfd);
 }
 
-bool Server::authenticateClient(int clientSocket, const char *password)
+const std::string &Server::getPasswd()
 {
-	if (this->passwd == password)
-	{
-		this->users[clientSocket] = Client(clientSocket);
-		return true;
-	}
-	return false;
+	return this->passwd;
 }
 
 void serverCreation(Server &server)
@@ -74,29 +93,47 @@ void serverCreation(Server &server)
 	}
 }
 
+bool pass(Server &server, int clientSocket, char *password)
+{
+	password[strlen(password) - 1] = '\0';
+	if (strcmp(password, server.getPasswd().c_str()) == 0)
+	{
+		server.getClient(clientSocket).setAuthentified();
+		return true;
+	}
+	std::cout << "Erreur : Mot de passe incorrect" << std::endl;
+	return false;
+}
+
 struct sockaddr_in acceptClient(Server &server, std::vector<pollfd> &fds)
 {
-	struct sockaddr_in clientAddress;
-	socklen_t clientAddressSize = sizeof(clientAddress);
-	int clientSocket = accept(server.getSocketfd(), (struct sockaddr *)&clientAddress, &clientAddressSize);
+	struct sockaddr_in clientAddr;
+	socklen_t clientLen = sizeof(clientAddr);
+	int clientSocket = accept(server.getSocketfd(), (struct sockaddr *)&clientAddr, &clientLen);
 	if (clientSocket < 0)
 	{
-		std::cerr << "Erreur de accept: " << strerror(errno) << std::endl;
-		return clientAddress;
+		std::cerr << "Erreur d'acceptation: " << strerror(errno) << std::endl;
+		throw std::runtime_error("Erreur d'acceptation");
 	}
 	pollfd clientPoll;
+	Client client(clientSocket, get_ip(&clientAddr.sin_addr), get_hostname(clientAddr));
 	clientPoll.fd = clientSocket;
 	clientPoll.events = POLLIN;
 	fds.push_back(clientPoll);
-	std::cout << "Client connecté" << std::endl;
-	return clientAddress;
+	std::cout << "Nouvelle connexion acceptée de " << get_ip(&clientAddr.sin_addr) << " (" << get_hostname(clientAddr) << ")" << std::endl;
+	server.addUser(clientSocket, client);
+	client.setUsername("supe4cookie");
+	client.setNickname("cookie");
+	rpl_welcome(client);
+	return clientAddr;
 }
 
 bool Server::isClientAuthenticated(int clientSocket)
 {
-	return this->users.find(clientSocket) != this->users.end();
+	return this->users.at(clientSocket).isAuthentified();
 }
 
+#
 void receiveMessage(Server &server, int clientSocket)
 {
 	char buffer[1024] = {0};
@@ -115,16 +152,28 @@ void receiveMessage(Server &server, int clientSocket)
 	else
 	{
 		buffer[n] = '\0';
-		std::cout << "Message reçu (taille " << n << "): '" << buffer << "'" << std::endl;
-		if (strncmp(buffer, "PASS", 4) != 0 && !server.isClientAuthenticated(clientSocket))
+		std::cout << "Message recu: " << server.isClientAuthenticated(clientSocket) << std::endl;
+		if ((strncmp(buffer, "PASS", 4) != 0) && server.isClientAuthenticated(clientSocket) == 0)
 		{
-			const char *msg = "Erreur : Vous devez d'abord vous authentifier avec PASS\r\n";
+			const char *msg = "Erreur : Vous devez vous authentifier avec la commande PASS\r\n";
 			send(clientSocket, msg, strlen(msg), 0);
 			return;
 		}
-		else if (strncmp(buffer, "PASS", 4) == 0)
-			
+		else if (strncmp(buffer, "PASS", 4) == 0 && server.isClientAuthenticated(clientSocket) == 0)
+		{
+			std::cout << "PASS" << std::endl;
+			pass(server, clientSocket, buffer + 5);
+
+			return;
+		}
+		else
+			parseCommand(server, clientSocket, buffer);
 	}
+}
+
+void Server::addUser(int socketfd, Client client)
+{
+	this->users.insert(std::pair<int, Client>(socketfd, client));
 }
 
 int server()
@@ -150,7 +199,16 @@ int server()
 			if (fds[i].revents & POLLIN)
 			{
 				if (fds[i].fd == server.getSocketfd())
-					acceptClient(server, fds);
+				{
+					try
+					{
+						acceptClient(server, fds);
+					}
+					catch (const std::runtime_error &e)
+					{
+						continue;
+					}
+				}
 				else
 					receiveMessage(server, fds[i].fd);
 			}

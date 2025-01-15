@@ -1,6 +1,6 @@
 #include <Server.hpp>
 
-void pass(Server &server, int clientSocket, char *buffer)
+/* void pass(Server &server, int clientSocket, char *buffer)
 {
 	while (*buffer && isspace(*buffer))
 		buffer++;
@@ -14,7 +14,7 @@ void pass(Server &server, int clientSocket, char *buffer)
 		const char *msg = "Erreur : Mot de passe incorrect\r\n";
 		send(clientSocket, msg, strlen(msg), 0);
 	}
-}
+} */
 
 void nick(char *buffer)
 {
