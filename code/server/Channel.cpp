@@ -1,6 +1,7 @@
 #include <Channel.hpp>
 
-Channel::Channel(std::string name, Client *owner) : name(name), owner(owner)
+//Channel::Channel(std::string name, Client *owner) : name(name), owner(owner)
+Channel::Channel(std::string name) : name(name)//, owner(owner)
 {
 }
 

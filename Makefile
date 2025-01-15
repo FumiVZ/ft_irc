@@ -21,6 +21,7 @@ ALL_HEADERS = $(SERVER_HEADERS)
 SERVER_SRCS = $(addprefix $(SERVER_DIR), \
 					Client.cpp \
 					Server.cpp \
+					Parse_cmd.cpp \
 					Channel.cpp \
 					$(addprefix replies/, \
 						rpl_welcome.cpp \
