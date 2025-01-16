@@ -24,7 +24,14 @@ SERVER_SRCS = $(addprefix $(SERVER_DIR), \
 					Parse_cmd.cpp \
 					Channel.cpp \
 					$(addprefix replies/, \
+						$(addprefix errors/, \
+							err_needmoreparams.cpp \
+							err_nosuchnick.cpp \
+							) \
 						rpl_welcome.cpp \
+						rpl_namreply.cpp \
+						rpl_endofnames.cpp \
+						rpl_topic.cpp \
 						) \
 					$(addprefix parsing/, \
 						Message.cpp \

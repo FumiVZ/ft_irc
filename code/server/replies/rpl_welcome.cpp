@@ -3,5 +3,8 @@
 
 void rpl_welcome(Client client)
 {
-	client.sendReply("001", "Welcome to the Internet Relay Network " + client.getNickname() + "!" + client.getUsername() + "@" + client.getHostname());
+	client.forwardMessage(":" + get_g_hostname() 
+						+ " 001 " 
+						+ client.getNickname() + " :Welcome to the Internet Relay Network " 
+						+ client.getNickname() + "!" + client.getUsername() + "@" + client.getHostname() + "\r\n");
 }

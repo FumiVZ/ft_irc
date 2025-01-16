@@ -35,10 +35,10 @@ public:
 	void setUsername(std::string username);
 	std::string getHostname();
 	void setHostname(std::string hostname);
-
-	void sendReply(std::string code, std::string message);
 	bool isAuthentified();
 	void setAuthentified();
+
+	void forwardMessage(std::string message);
 	char mode;
 	/*
 	a - user is flagged as away;
@@ -49,6 +49,9 @@ public:
     O - local operator flag;
     s - marks a user for receipt of server notices.
 	*/
+	bool operator==(const Client &c) const;
+	void sendMsg(std::string msg, Channel &ch);
+	void sendMsg(std::string msg, Client &c);
 };
 
 #endif

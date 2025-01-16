@@ -1,13 +1,17 @@
 #include <Client.hpp>
 #include <Channel.hpp>
+#include <Server.hpp>
 
-void rpl_namreply(Client c, Channel ch, std::string server_hostname)
+void rpl_namreply(Client c, Channel ch)
 {
-	std::string reply = ":" + server_hostname + " 353 " + c.getNickname() + " = " + ch.getName() + " :";
-	for (Client client : ch.getClients())
+	std::string reply = ":" + get_g_hostname() + " 353 " + c.getNickname() + " = " + ch.getName() + " :";
+	std::vector<Client> clients = ch.getClients();
+	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
 	{
-		reply += client.getNickname() + " ";
+		if (ch.isOp(*it))
+			reply += "@";
+		reply += it->getNickname() + " ";
 	}
 	reply += "\r\n";
-	c.sendReply("353", reply);
+	c.forwardMessage(reply);
 }
