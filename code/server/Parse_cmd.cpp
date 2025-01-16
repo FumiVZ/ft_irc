@@ -1,78 +1,104 @@
 #include <Server.hpp>
 
-/* void pass(Server &server, int clientSocket, char *buffer)
+void nick(Server &server, int clientSocket, char *buffer)
 {
-	while (*buffer && isspace(*buffer))
-		buffer++;
-	if (server.authenticateClient(clientSocket, buffer))
+	std::cout << "NICK:" << buffer << std::endl;
+	if (server.isNicknameInUse(buffer))
 	{
-		const char *msg = "Authentification réussie\r\n";
-		send(clientSocket, msg, strlen(msg), 0);
+		server.getClient(clientSocket).sendReply("433", ERR_NICKNAMEINUSE);
+		return;
 	}
-	else
-	{
-		const char *msg = "Erreur : Mot de passe incorrect\r\n";
-		send(clientSocket, msg, strlen(msg), 0);
-	}
-} */
-
-void nick(char *buffer)
-{
-	std::cout << "NICK: " << buffer << std::endl;
+	server.getClient(clientSocket).setNickname(buffer);
+	send(clientSocket, "Nickname sucessfuly changed!\r\n", 31, 0);
+	std::cout << "NICK: " << server.getClient(clientSocket).getNickname() << std::endl;
+	std::cout << "clientSocket: " << clientSocket << std::endl;
 }
 
-void user(char *buffer)
+void user(Server &server, int clientSocket, char *buffer)
 {
-	std::cout << "USER: " << buffer << std::endl;
+	std::cout << "USER:" << buffer << std::endl;
+	server.getClient(clientSocket).setUsername(buffer);
+	send(clientSocket, "Username sucessfuly changed!\r\n", 31, 0);
 }
 
-void oper(char *buffer)
+void oper(Server &server, int clientSocket, char *buffer)
 {
+	(void)server;
+	(void)clientSocket;
+	(void)buffer;
 	std::cout << "OPER: " << buffer << std::endl;
 }
 
-void mode(char *buffer)
+void mode(Server &server, int clientSocket, char *buffer)
 {
+	(void)server;
+	(void)clientSocket;
+	(void)buffer;
 	std::cout << "MODE: " << buffer << std::endl;
 }
 
-void quit(char *buffer)
+void quit(Server &server, int clientSocket, char *buffer)
 {
+	(void)server;
+	(void)clientSocket;
+	(void)buffer;
 	std::cout << "QUIT: " << buffer << std::endl;
 }
 
-void join(char *buffer)
+void join(Server &server, int clientSocket, char *buffer)
 {
+	(void)server;
+	(void)clientSocket;
+	(void)buffer;
 	std::cout << "JOIN: " << buffer << std::endl;
 }
 
-void part(char *buffer)
+void part(Server &server, int clientSocket, char *buffer)
 {
+	(void)server;
+	(void)clientSocket;
+	(void)buffer;
 	std::cout << "PART: " << buffer << std::endl;
 }
 
-void topic(char *buffer)
+void topic(Server &server, int clientSocket, char *buffer)
 {
+	(void)server;
+	(void)clientSocket;
+	(void)buffer;
 	std::cout << "TOPIC: " << buffer << std::endl;
 }
 
-void kick(char *buffer)
+void kick(Server &server, int clientSocket, char *buffer)
 {
+	(void)server;
+	(void)clientSocket;
+	(void)buffer;
 	std::cout << "KICK: " << buffer << std::endl;
 }
 
-void privmsg(char *buffer)
+void privmsg(Server &server, int clientSocket, char *buffer)
 {
-	std::cout << "PRIVMSG: " << buffer << std::endl;
+	(void)server;
+	(void)clientSocket;
+	(void)buffer;
 }
 
-void notice(char *buffer)
+void notice(Server &server, int clientSocket, char *buffer)
 {
-	std::cout << "NOTICE: " << buffer << std::endl;
+	(void)server;
+	(void)clientSocket;
+	(void)buffer;
+	std::cout << "clientSocket: " << clientSocket << std::endl;
+	std::cout << "NICK: " << server.getClient(clientSocket).getNickname() << std::endl;
+	std::cout << "USER: " << server.getClient(clientSocket).getUsername() << std::endl;
 }
 
-void sendfile(char *buffer)
+void sendfile(Server &server, int clientSocket, char *buffer)
 {
+	(void)server;
+	(void)clientSocket;
+	(void)buffer;
 	std::cout << "SENDFILE: " << buffer << std::endl;
 }
 
@@ -95,7 +121,7 @@ void parseCommand(Server &server, int clientSocket, char *buffer)
 		"NOTICE",
 		"SENDFILE",
 	};
-	void (*functions[])(char *) = {
+	void (*functions[])(Server &, int, char *) = {
 		&nick,
 		&user,
 		&oper,
@@ -122,16 +148,16 @@ void parseCommand(Server &server, int clientSocket, char *buffer)
 		{
 			if (strncmp(buffer, commands[i], strlen(commands[i])) == 0)
 			{
-				std::cout << "Commande: " << commands[i] << std::endl;
+				std::cout << "Command: " << commands[i] << std::endl;
 				buffer += strlen(commands[i]);
-				functions[i](buffer);
+				functions[i](server, clientSocket, buffer);
 				commandFound = true;
 				break;
 			}
 		}
 		if (!commandFound)
 		{
-			std::cout << "Commande non reconnue" << std::endl;
+			server.getClient(clientSocket).sendReply("421", ERR_UNKNOWNCOMMAND);
 			break;
 		}
 	}
