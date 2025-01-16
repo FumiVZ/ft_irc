@@ -1,6 +1,6 @@
 #include <Channel.hpp>
 
-Channel::Channel(std::string name, Client &owner) : name(name), topic(""), mode('n')
+Channel::Channel(std::string name, Client &owner) : name(name), topic("")
 {
 	this->ops.push_back(owner);
 	this->clients.push_back(owner);

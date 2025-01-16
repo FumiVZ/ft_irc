@@ -25,7 +25,7 @@ SERVER_SRCS = $(addprefix $(SERVER_DIR), \
 					Channel.cpp \
 					$(addprefix replies/, \
 						$(addprefix errors/, \
-							err_needmoreparams.cpp \
+							err_needmoreparam.cpp \
 							err_nosuchnick.cpp \
 							) \
 						rpl_welcome.cpp \
