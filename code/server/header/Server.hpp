@@ -52,6 +52,7 @@ class Server
 		void addUser(int socketfd, Client client);
 		void broadcast(std::string message);
 		Client & getClient(int socketfd);
+		Client & getClient(const std::string &nickname);
 		const std::string &getPasswd();
 };
 

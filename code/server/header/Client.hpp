@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 
+#define USERLEN 12 // max length of username
+
 class Channel;
 class Client
 {
