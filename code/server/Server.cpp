@@ -3,6 +3,8 @@
 #include <errno.h>
 #include <vector>
 
+static sockaddr_in g_serverAddr;
+
 std::string get_ip(struct in_addr *in)
 {
 	char clientIp[INET_ADDRSTRLEN];
@@ -18,6 +20,11 @@ std::string get_hostname(struct sockaddr_in &clientAddr)
 		return get_ip(&clientAddr.sin_addr);
 	}
 	return clientHostname;
+}
+
+std::string get_g_hostname()
+{
+	return get_hostname(g_serverAddr);
 }
 
 void Server::setSocketfd(int socketfd)
@@ -52,6 +59,7 @@ Server::Server(const std::string &password)
 	this->serverAddress.sin_family = AF_INET;
 	this->serverAddress.sin_addr.s_addr = INADDR_ANY;
 	this->serverAddress.sin_port = htons(PORT);
+	g_serverAddr = this->serverAddress;
 }
 
 Server::~Server()

@@ -42,9 +42,7 @@ std::string Client::getUsername() { return this->username; }
 void Client::setUsername(std::string username) { this->username = username; }
 std::string Client::getHostname() { return this->hostname; }
 void Client::setHostname(std::string hostname) { this->hostname = hostname; }
-
-void Client::sendReply(std::string code, std::string message)
-{
-	std::string reply = ":" + this->getHostname() + " " + code + " " + message + "\r\n";
-	send(this->getSocketfd(), reply.c_str(), reply.size(), 0);
-}
+bool Client::operator==(const Client &c) const { return this->getSocketfd() == c.getSocketfd(); }
+void Client::forwardMessage(std::string message) { send(this->getSocketfd(), message.c_str(), message.size(), 0); }
+void Client::sendMsg(std::string msg, Channel &ch) { ch.broadcast(*this, msg); }
+void Client::sendMsg(std::string msg, Client &c) { c.forwardMessage(msg); }

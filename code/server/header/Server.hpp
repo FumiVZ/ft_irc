@@ -36,6 +36,7 @@ class Server
 {
 	private:
 		std::map<int, Client> users;
+		std::map<std::string, Channel> channels;
 		std::string passwd;
 		int socketfd;
 		sockaddr_in serverAddress;
@@ -56,4 +57,7 @@ class Server
 
 int server();
 void	parseCommand(Server &server, int clientSocket, char *buffer);
+std::string get_ip(struct in_addr *in);
+std::string get_hostname(struct sockaddr_in &clientAddr);
+std::string get_g_hostname();
 #endif
