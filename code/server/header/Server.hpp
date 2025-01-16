@@ -48,6 +48,7 @@ class Server
 		void setSocketfd(int socketfd);
 		bool authenticateClient(int clientSocket, const char *password);
 		bool isClientAuthenticated(int clientSocket);
+		bool isNicknameInUse(const std::string &nickname);
 		void addUser(int socketfd, Client client);
 		void broadcast(std::string message);
 		Client & getClient(int socketfd);

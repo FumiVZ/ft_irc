@@ -3,6 +3,8 @@
 #include <errno.h>
 #include <vector>
 
+
+
 std::string get_ip(struct in_addr *in)
 {
 	char clientIp[INET_ADDRSTRLEN];
@@ -18,6 +20,16 @@ std::string get_hostname(struct sockaddr_in &clientAddr)
 		return get_ip(&clientAddr.sin_addr);
 	}
 	return clientHostname;
+}
+
+bool Server::isNicknameInUse(const std::string &nickname)
+{
+	for (std::map<int, Client>::iterator i = this->users.begin(); i != this->users.end(); i++) 
+	{
+		if (i->second.getNickname() == nickname)
+			return true;
+	}
+	return false;
 }
 
 void Server::setSocketfd(int socketfd)
@@ -64,6 +76,29 @@ const std::string &Server::getPasswd()
 	return this->passwd;
 }
 
+struct sockaddr_in acceptClient(Server &server, std::vector<pollfd> &fds)
+{
+	struct sockaddr_in clientAddr;
+	socklen_t clientLen = sizeof(clientAddr);
+	int clientSocket = accept(server.getSocketfd(), (struct sockaddr *)&clientAddr, &clientLen);
+	if (clientSocket < 0)
+	{
+		std::cerr << "Erreur d'acceptation: " << strerror(errno) << std::endl;
+		throw std::runtime_error("Erreur d'acceptation");
+	}
+	pollfd clientPoll;
+	Client client(clientSocket, get_ip(&clientAddr.sin_addr), get_hostname(clientAddr));
+	clientPoll.fd = clientSocket;
+	clientPoll.events = POLLIN;
+	fds.push_back(clientPoll);
+	std::cout << "Nouvelle connexion acceptée de " << get_ip(&clientAddr.sin_addr) << " (" << get_hostname(clientAddr) << ")" << std::endl;
+	server.addUser(clientSocket, client);
+	client.setUsername("supe4cookie");
+	client.setNickname("cookie");
+	rpl_welcome(client);
+	return clientAddr;
+}
+
 void serverCreation(Server &server)
 {
 	server.setSocketfd(socket(AF_INET, SOCK_STREAM, 0));
@@ -99,41 +134,21 @@ bool pass(Server &server, int clientSocket, char *password)
 	if (strcmp(password, server.getPasswd().c_str()) == 0)
 	{
 		server.getClient(clientSocket).setAuthentified();
+		send(clientSocket, "Authentification réussie\r\n", 27, 0);
 		return true;
 	}
-	std::cout << "Erreur : Mot de passe incorrect" << std::endl;
+	server.getClient(clientSocket).sendReply("464", ERR_PASSWDMISMATCH);	
 	return false;
 }
 
-struct sockaddr_in acceptClient(Server &server, std::vector<pollfd> &fds)
-{
-	struct sockaddr_in clientAddr;
-	socklen_t clientLen = sizeof(clientAddr);
-	int clientSocket = accept(server.getSocketfd(), (struct sockaddr *)&clientAddr, &clientLen);
-	if (clientSocket < 0)
-	{
-		std::cerr << "Erreur d'acceptation: " << strerror(errno) << std::endl;
-		throw std::runtime_error("Erreur d'acceptation");
-	}
-	pollfd clientPoll;
-	Client client(clientSocket, get_ip(&clientAddr.sin_addr), get_hostname(clientAddr));
-	clientPoll.fd = clientSocket;
-	clientPoll.events = POLLIN;
-	fds.push_back(clientPoll);
-	std::cout << "Nouvelle connexion acceptée de " << get_ip(&clientAddr.sin_addr) << " (" << get_hostname(clientAddr) << ")" << std::endl;
-	server.addUser(clientSocket, client);
-	client.setUsername("supe4cookie");
-	client.setNickname("cookie");
-	rpl_welcome(client);
-	return clientAddr;
-}
+
 
 bool Server::isClientAuthenticated(int clientSocket)
 {
 	return this->users.at(clientSocket).isAuthentified();
 }
 
-#
+
 void receiveMessage(Server &server, int clientSocket)
 {
 	char buffer[1024] = {0};
@@ -148,6 +163,7 @@ void receiveMessage(Server &server, int clientSocket)
 	{
 		std::cout << "Client déconnecté" << std::endl;
 		close(clientSocket);
+		return;
 	}
 	else
 	{
@@ -155,15 +171,12 @@ void receiveMessage(Server &server, int clientSocket)
 		std::cout << "Message recu: " << server.isClientAuthenticated(clientSocket) << std::endl;
 		if ((strncmp(buffer, "PASS", 4) != 0) && server.isClientAuthenticated(clientSocket) == 0)
 		{
-			const char *msg = "Erreur : Vous devez vous authentifier avec la commande PASS\r\n";
-			send(clientSocket, msg, strlen(msg), 0);
+			send(clientSocket, "Erreur : Vous devez vous authentifier (PASS: <password>)\r\n", 59, 0);
 			return;
 		}
 		else if (strncmp(buffer, "PASS", 4) == 0 && server.isClientAuthenticated(clientSocket) == 0)
 		{
-			std::cout << "PASS" << std::endl;
 			pass(server, clientSocket, buffer + 5);
-
 			return;
 		}
 		else
