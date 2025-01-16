@@ -1,6 +1,9 @@
 #ifndef CHANNEL_HPP
 # define CHANNEL_HPP
 #include <Client.hpp>
+#include <iostream>
+#include <vector>
+
 
 class Client;
 class Channel
@@ -11,7 +14,7 @@ private:
 	std::vector<Client> clients;
 
 	std::string topic;
-	char mode;
+	std::vector<char> modes;
 public:
 	Channel(std::string name, Client &owner);
 	void broadcast(Client &c, std::string msg);
