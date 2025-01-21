@@ -31,3 +31,5 @@ void Channel::broadcast(Client &c, std::string msg)
 			it->forwardMessage(":" + c.getNickname() + "!" + c.getUsername() + "@" + c.getHostname() + " PRIVMSG " + this->name + " :" + msg);
 	}
 }
+
+void Channel::addClient(Client &c) { this->clients.push_back(c); }

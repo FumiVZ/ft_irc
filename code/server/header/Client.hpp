@@ -16,7 +16,7 @@ private:
 	std::string ip;
 	std::string hostname;
 	std::string full_client_id;
-	std::vector<Channel> channels;
+	Channel &channel;
 	int socketfd;
 	bool is_auth;
 
@@ -54,6 +54,7 @@ public:
 	bool operator==(const Client &c) const;
 	void sendMsg(std::string msg, Channel &ch);
 	void sendMsg(std::string msg, Client &c);
+	void sendReply(std::string code, std::string message);
 };
 
 #endif
