@@ -15,6 +15,7 @@ extern "C" {
 }
 #endif
 
+#include <Message.hpp>
 #include <string>
 #include <vector>
 #include <map>

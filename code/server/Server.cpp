@@ -2,6 +2,9 @@
 #include <cstring>
 #include <errno.h>
 #include <vector>
+#include <sstream>
+
+#define DEBUG 1
 
 std::string get_ip(struct in_addr *in)
 {
@@ -55,6 +58,16 @@ Client &Server::getClient(int socketfd)
 	return this->users.at(socketfd);
 }
 
+Client &Server::getClient(const std::string &nickname)
+{
+	for (std::map<int, Client>::iterator i = this->users.begin(); i != this->users.end(); i++)
+	{
+		if (i->second.getNickname() == nickname)
+			return i->second;
+	}
+	throw std::runtime_error("No client with nickname " + nickname);
+}
+
 Server::Server(const std::string &password)
 {
 	this->passwd = password;
@@ -88,6 +101,20 @@ struct sockaddr_in acceptClient(Server &server, std::vector<pollfd> &fds)
 	fds.push_back(clientPoll);
 	std::cout << "New connection at " << get_ip(&clientAddr.sin_addr) << " (" << get_hostname(clientAddr) << ")" << std::endl;
 	server.addUser(clientSocket, client);
+	if (DEBUG == 1)
+	{
+		std::string nickname = "test";
+		server.getClient(clientSocket).setAuth(true);
+		if (!(server.isNicknameInUse(nickname)))
+			server.getClient(clientSocket).setNickname("test");
+		else
+			server.getClient(clientSocket).setNickname("test1");
+		server.getClient(clientSocket).setUsername("test");
+		server.getClient(clientSocket).setHostname("test");
+		std::ostringstream oss;
+		oss << clientSocket;
+		server.getClient(clientSocket).sendReply("001", "User " + server.getClient(clientSocket).getNickname() + "nick: " + server.getClient(clientSocket).getNickname() + "clientsocket: " + oss.str());
+	}
 	rpl_welcome(client);
 	return clientAddr;
 }
@@ -140,6 +167,7 @@ bool Server::isClientAuthenticated(int clientSocket)
 {
 	return this->users.at(clientSocket).isAuthentified();
 }
+
 // NEED FIX DONT WORK
 // void receiveMessage(Server &server, int clientSocket)
 // {
@@ -204,6 +232,8 @@ void receiveMessage(Server &server, int clientSocket)
 {
 	char buffer[1024] = {0};
 	int n = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
+	std::vector<std::string> messages;
+	
 	std::cout << "Message received: " << buffer << std::endl;
 	if (n < 0)
 	{
@@ -260,9 +290,10 @@ int server()
 		}
 		for (size_t i = 0; i < fds.size(); i++)
 		{
-			if (fds[i].revents & POLLIN)
+
+			if (fds[i].revents && fds[i].revents & POLLIN)
 			{
-				if (fds[i].fd == server.getSocketfd()) // need fix valgrind error
+				if (fds[i].fd == server.getSocketfd())
 				{
 					try
 					{

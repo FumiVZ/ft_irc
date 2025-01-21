@@ -1,6 +1,6 @@
 NAME = ircserv
 CC = c++
-CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD -MP -g3
+CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -g3
 
 BUILD_DIR = build
 SRCS_DIR = code/
@@ -13,6 +13,7 @@ SERVER_HEADERS = $(addprefix $(SERVER_DIR), \
 						Server.hpp \
 						Channel.hpp \
 						replies.hpp \
+						Message.hpp \
 						) \
 					)
 
@@ -22,6 +23,7 @@ SERVER_SRCS = $(addprefix $(SERVER_DIR), \
 					Server.cpp \
 					Parse_cmd.cpp \
 					Channel.cpp \
+					Message.cpp \
 					$(addprefix replies/, \
 						rpl_welcome.cpp \
 						) \

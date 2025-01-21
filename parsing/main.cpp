@@ -6,7 +6,6 @@ void testValidMessage()
 {
 	std::string raw_msg = ":prefix COMMAND param1 param2 :trailing param\r\n";
 	Message msg(raw_msg);
-
 	std::cout << msg << std::endl;
 	assert(msg.getPrefix() == "prefix");
 	assert(msg.getCommand() == "COMMAND");
@@ -21,10 +20,8 @@ void testNoPrefix()
 {
 	std::string raw_msg = "COMMAND param1 param2 :trailing param\r\n";
 	Message msg(raw_msg);
-
 	std::cout << "Testing message with no prefix..." << std::endl;
 	std::cout << msg << std::endl;
-
 	assert(msg.getPrefix().empty());
 	assert(msg.getCommand() == "COMMAND");
 	assert(msg.getParameters().size() == 2);
@@ -62,25 +59,24 @@ void testInvalidMessage()
 		Message msg(raw_msg);
 		std::cout << "Testing invalid message..." << std::endl;
 		std::cout << msg << std::endl;
-		assert(false); // Exception should be thrown
+		assert(false);
 	}
 	catch (const std::invalid_argument &e)
 	{
 		std::cout << "Testing invalid message..." << std::endl;
 		std::cout << "Exception caught: " << e.what() << std::endl;
-		assert(true); // Exception should be thrown
+		assert(true);
 	}
 }
 
 void testMaxLength()
 {
-	std::string long_msg(510, 'A'); // 510 characters
+	std::string long_msg(510, 'A');
 	Message msg(long_msg + "\r\n");
 
 	std::cout << "Testing max length message..." << std::endl;
 	std::cout << "Raw Message Length: " << msg.getRawMessage().length() << std::endl;
-
-	assert(msg.getRawMessage().length() == 512); // 510 + \r\n
+	assert(msg.getRawMessage().length() == 512);
 	std::cout << msg << std::endl;
 }
 
