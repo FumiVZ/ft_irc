@@ -1,6 +1,6 @@
 NAME = ircserv
 CC = c++
-CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD -MP -g3
+CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -g3
 
 BUILD_DIR = build
 SRCS_DIR = code/
