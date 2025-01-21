@@ -7,6 +7,7 @@
 #define ERR_NICKNAMEUNSET "You must set a nickname (NICK <nickname>)"
 #define ERR_NICKNAMECHANGED "Your nickname has been changed"
 #define ERR_NICKNAME "Invalid nickname"
+#define ERR_USERINVALID "Invalid username"
 #define ERR_UNKNOWNCOMMAND "Unknown command"
 #define ERR_USERNAMEUNSET "You must set a username (USER <username>)"
 #define ERR_ERRONEUSNICKNAME "Erroneus nickname"
@@ -15,5 +16,8 @@
 #define ERR_NICKRESERVED "Nickname reserved"
 #define ERR_NOTEXTTOSEND "No text to send"
 #define ERR_NORECIPIENT "No target given"
+#define ERR_NONICKNAMEGIVEN "No nickname given"
+#define ERR_NOSUCHNICK "No such nick/channel"
+#define ERR_WRONGPARAMCOUNT "Wrong number of parameters"
 void rpl_welcome(Client client);
 #endif
