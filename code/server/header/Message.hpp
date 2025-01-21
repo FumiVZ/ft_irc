@@ -24,7 +24,6 @@ private:
 
 public:
 	explicit Message(const std::string &message);
-
 	const std::string &getPrefix() const;
 	const std::string &getCommand() const;
 	const std::vector<std::string> &getParameters() const;
