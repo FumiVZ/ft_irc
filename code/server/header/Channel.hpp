@@ -23,6 +23,7 @@ public:
 	std::vector<Client> &getOps();
 	void addOp(Client &op);
 	bool isOp(Client &op);
+	void addClient(Client &c);
 
 	~Channel();
 };

@@ -63,9 +63,14 @@ void quit(Server &server, int clientSocket, Message message)
 
 void join(Server &server, int clientSocket, Message message)
 {
-	(void)server;
-	(void)clientSocket;
-	(void)message;
+	Channel *channel = server.getChannel(message.getParameters()[0]);
+	if (channel != NULL)
+	{
+		channel->addClient(server.getClient(clientSocket));
+		return;
+	}
+	Channel channel(message.getParameters()[0], server.getClient(clientSocket));
+	server.
 }
 
 void part(Server &server, int clientSocket, Message message)

@@ -48,7 +48,6 @@ class Server
 		void setServerAddress(struct sockaddr_in serverAddress);
 		int getSocketfd();
 		void setSocketfd(int socketfd);
-		bool authenticateClient(int clientSocket, const char *password);
 		bool isClientAuthenticated(int clientSocket);
 		bool isNicknameInUse(const std::string &nickname);
 		void addUser(int socketfd, Client client);
@@ -56,6 +55,8 @@ class Server
 		Client & getClient(int socketfd);
 		Client & getClient(const std::string &nickname);
 		const std::string &getPasswd();
+		void addChannel(Channel &ch);
+		Channel *getChannel(const std::string &name);
 };
 
 int server();

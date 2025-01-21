@@ -325,3 +325,6 @@ void Server::broadcast(std::string message)
 		send(it->first, message.c_str(), message.length(), 0);
 	}
 }
+
+void Server::addChannel(Channel &ch) { this->channels.insert(std::pair<std::string, Channel>(ch.getName(), ch)); }
+Channel *Server::getChannel(const std::string &name) { return &(this->channels.at(name)); }
