@@ -69,7 +69,6 @@ void Message::parse()
 			throw std::invalid_argument("Command is not entirely uppercase");
 		}
 	}
-
 	if (pos == std::string::npos)
 	{
 		return;
@@ -83,7 +82,6 @@ void Message::parse()
 			_text = msg.substr(1, msg.length() - 3);
 			break;
 		}
-
 		pos = msg.find(' ');
 		if (pos == std::string::npos)
 		{
@@ -143,6 +141,11 @@ std::ostream &operator<<(std::ostream &os, const Message &msg)
 	os << "Command: " << msg.getCommand() << std::endl;
 	os << "Number of parameters: " << msg.getParameters().size() << std::endl;
 	os << "Parameters: ";
+	for (size_t i = 0; i < msg.getParameters().size(); i++)
+	{
+		const std::string &param = msg.getParameters()[i];
+		os << param << " ";
+	}
 	os << std::endl;
 	os << "Text: " << msg.getText() << std::endl;
 	os << std::endl;
