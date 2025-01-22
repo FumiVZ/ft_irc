@@ -162,6 +162,7 @@ bool pass(Server &server, int clientSocket, char *password)
 	}
 	server.getClient(clientSocket).sendReply("464", ERR_PASSWDMISMATCH);
 	return false;
+	
 }
 
 bool Server::isClientAuthenticated(int clientSocket)
@@ -169,73 +170,16 @@ bool Server::isClientAuthenticated(int clientSocket)
 	return this->users.at(clientSocket).isAuthentified();
 }
 
-// NEED FIX DONT WORK
-// void receiveMessage(Server &server, int clientSocket)
-// {
-// 	char buffer[1024] = {0};
-// 	int n = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
-// 	std::cout << "Message received: " << buffer << std::endl;
-
-// 	if (n < 0)
-// 	{
-// 		std::cerr << "Error recv: " << strerror(errno) << std::endl;
-// 		close(clientSocket);
-// 		return;
-// 	}
-// 	else if (n == 0)
-// 	{
-// 		std::cout << "Client disconnected" << std::endl;
-// 		close(clientSocket);
-// 		return;
-// 	}
-// 	else
-// 	{
-// 		buffer[n] = '\0';
-// 		std::string message(buffer);
-// 		message.erase(std::remove(message.begin(), message.end(), '\r'), message.end());
-// 		std::vector<std::string> messages;
-// 		size_t pos = 0;
-// 		std::string delimiter = "\r\n";
-// 		while ((pos = message.find(delimiter)) != std::string::npos)
-// 		{
-// 			messages.push_back(message.substr(0, pos));
-// 			message.erase(0, pos + delimiter.length());
-// 		}
-// 		if (!message.empty())
-// 		{
-// 			messages.push_back(message);
-// 		}
-// 		for (size_t i = 0; i < messages.size(); ++i)
-// 		{
-// 			if (!messages[i].empty())
-// 			{
-// 				if ((strncmp(messages[i].c_str(), "PASS", 4) != 0) && server.isClientAuthenticated(clientSocket) == 0)
-// 				{
-// 					server.getClient(clientSocket).sendReply("451", "You have not registered yet use PASS <password>");
-// 					return;
-// 				}
-// 				else if (strncmp(messages[i].c_str(), "PASS", 4) == 0 && server.isClientAuthenticated(clientSocket) == 0)
-// 				{
-// 					char passwordCopy[1024];
-// 					strncpy(passwordCopy, messages[i].c_str() + 5, sizeof(passwordCopy) - 1);
-// 					passwordCopy[sizeof(passwordCopy) - 1] = '\0';
-// 					pass(server, clientSocket, passwordCopy);
-// 					return;
-// 				}
-// 				else
-// 					parseCommand(server, clientSocket, const_cast<char*>(messages[i].c_str()));
-// 			}
-// 		}
-// 	}
-// }
+void clear_buffer(char *buffer)
+{
+	for (size_t i = 0; i < sizeof(buffer); i++)
+		buffer[i] = '\0';
+}
 
 void receiveMessage(Server &server, int clientSocket)
 {
 	char buffer[1024] = {0};
 	int n = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
-	std::vector<std::string> messages;
-	
-	std::cout << "Message received: " << buffer << std::endl;
 	if (n < 0)
 	{
 		std::cerr << "Error recv: " << strerror(errno) << std::endl;
@@ -245,24 +189,37 @@ void receiveMessage(Server &server, int clientSocket)
 	else if (n == 0)
 	{
 		std::cout << "Client disconnected" << std::endl;
+		server.getClient(clientSocket).setAuth(false);
 		close(clientSocket);
 		return;
 	}
-	else
+	buffer[n] = '\0';
+	std::string message(buffer);
+	std::istringstream messageStream(message);
+	std::string line;
+
+	while (std::getline(messageStream, line))
 	{
-		buffer[n] = '\0';
-		if ((strncmp(buffer, "PASS", 4) != 0) && server.isClientAuthenticated(clientSocket) == 0)
+		if (line.empty())
+			continue;
+
+		try
 		{
-			server.getClient(clientSocket).sendReply("451", "You have not registered yet use PASS <password>");
-			return;
+			if (!server.isClientAuthenticated(clientSocket))
+			{
+				if (strncmp(buffer, "PASS", 4) == 0)
+					pass(server, clientSocket, buffer + 5);
+				else
+					server.getClient(clientSocket).sendReply("451", ERR_NOTREGISTERED);
+			}
+			else
+				parseCommand(server, clientSocket, buffer);
+			clear_buffer(buffer);
 		}
-		else if (strncmp(buffer, "PASS", 4) == 0 && server.isClientAuthenticated(clientSocket) == 0)
+		catch (const std::exception &e)
 		{
-			pass(server, clientSocket, buffer + 5);
-			return;
+			std::cerr << "Error: " << e.what() << std::endl;
 		}
-		else
-			parseCommand(server, clientSocket, buffer);
 	}
 }
 
