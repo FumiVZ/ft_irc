@@ -19,5 +19,6 @@
 #define ERR_NONICKNAMEGIVEN "No nickname given"
 #define ERR_NOSUCHNICK "No such nick/channel"
 #define ERR_WRONGPARAMCOUNT "Wrong number of parameters"
+#define ERR_NOTREGISTERED "You have not registered"
 void rpl_welcome(Client client);
 #endif

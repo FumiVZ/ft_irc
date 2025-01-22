@@ -63,9 +63,12 @@ void quit(Server &server, int clientSocket, Message message)
 
 void join(Server &server, int clientSocket, Message message)
 {
-	(void)server;
-	(void)clientSocket;
-	(void)message;
+	if (message.getParameters().size() != 1)
+	{
+		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
+		return;
+	}
+
 }
 
 void part(Server &server, int clientSocket, Message message)
@@ -189,7 +192,7 @@ void parseCommand(Server &server, int clientSocket, char *buffer)
 		{
 			if (message.getCommand() == commands[i])
 			{
-				std::cout << "here" << std::endl;
+		
 				functions[i](server, clientSocket, message);
 				return;
 			}
