@@ -1,9 +1,10 @@
 #include <Channel.hpp>
 
-Channel::Channel(std::string name, Client &owner) : name(name), topic("")
+Channel::Channel(std::string name, Client &owner) : name(name), topic("No topic is set")
 {
 	this->ops.push_back(owner);
 	this->clients.push_back(owner);
+	this->modes.push_back('t');
 }
 Channel::~Channel()
 {
@@ -27,10 +28,10 @@ void Channel::broadcast(Client &c, std::string msg)
 {
 	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
 	{
-		if (it->getSocketfd() != c.getSocketfd())
-			it->forwardMessage(":" + c.getNickname() + "!" + c.getUsername() + "@" + c.getHostname() + msg + "\r\n");
+		it->forwardMessage(":" + c.getNickname() + "!" + c.getUsername() + "@" + c.getHostname() + msg + "\r\n");
 	}
 }
 
 void Channel::addClient(Client &c) { this->clients.push_back(c); }
 std::string Channel::getTopic() { return this->topic; }
+void Channel::setTopic(std::string topic) { this->topic = topic; }
