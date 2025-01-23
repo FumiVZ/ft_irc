@@ -319,4 +319,16 @@ void Server::broadcast(std::string message)
 }
 
 void Server::addChannel(Channel &ch) { this->channels.insert(std::pair<std::string, Channel>(ch.getName(), ch)); }
-Channel *Server::getChannel(const std::string &name) { return &(this->channels.at(name)); }
+Channel *Server::getChannel(const std::string &name)
+{
+	Channel *ch = NULL;
+	try
+	{
+		ch = &(this->channels.at(name));
+	}
+	catch (const std::out_of_range &)
+	{
+		return NULL;
+	}
+	return ch;
+}
