@@ -19,13 +19,13 @@ void nick(Server &server, int clientSocket, Message message)
 		return;
 	}
 	server.getClient(clientSocket).setNickname(nickname);
-
+	std::cout << "Client nick is: " << server.getClient(clientSocket).getNickname() << std::endl;
 }
 
 void user(Server &server, int clientSocket, Message message)
 {
 	std::vector<std::string> parameters = message.getParameters();
-	if (parameters.size() != 4)
+	if (parameters.size() != 3)
 	{
 		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
 		return;
@@ -37,7 +37,7 @@ void user(Server &server, int clientSocket, Message message)
 		return;
 	}
 	server.getClient(clientSocket).setUsername(username);
-
+	std::cout << "Client username is: " << server.getClient(clientSocket).getUsername() << std::endl;
 }
 
 void oper(Server &server, int clientSocket, Message message)
@@ -56,13 +56,19 @@ void mode(Server &server, int clientSocket, Message message)
 
 void quit(Server &server, int clientSocket, Message message)
 {
-	(void)server;
-	(void)clientSocket;
-	(void)message;
+	if (message.getParameters().size() != 0)
+	{
+		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
+		return;
+	}
+	server.getClient(clientSocket).setAuth(false);
+	close(clientSocket);
+	std::cout << "Client disconnected" << std::endl;
 }
 
 void join(Server &server, int clientSocket, Message message)
 {
+	std::cout << "Joining channel" << std::endl;
 	if (message.getParameters().size() != 1)
 	{
 		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
@@ -106,6 +112,7 @@ void kick(Server &server, int clientSocket, Message message)
 
 void privmsg(Server &server, int clientSocket, Message message)
 {
+	std::cout << "PRIVMSG" << std::endl;
 	std::string target = message.getParameters()[0];
 	std::string text = message.getText();
 	if (target.empty())
@@ -152,21 +159,6 @@ void sendfile(Server &server, int clientSocket, Message message)
 	(void)server;
 	(void)clientSocket;
 	(void)message;
-}
-
-static std::string MakeVisible(std::string str)
-{
-	std::string result;
-	for (size_t i = 0; i < str.size(); i++)
-	{
-		if (str[i] == '\r')
-			result += "\\r";
-		else if (str[i] == '\n')
-			result += "\\n";
-		else
-			result += str[i];
-	}
-	return result;
 }
 
 void parseCommand(Server &server, int clientSocket, Message message)
@@ -218,7 +210,6 @@ void parseCommand(Server &server, int clientSocket, Message message)
 		{
 			if (message.getCommand() == commands[i])
 			{
-				std::cout << "Message raw: " << MakeVisible(message.getRawMessage()) << std::endl;
 				functions[i](server, clientSocket, message);
 				return;
 			}
