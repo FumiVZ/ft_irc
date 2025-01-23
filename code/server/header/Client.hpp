@@ -15,14 +15,12 @@ private:
 	std::string username;
 	std::string ip;
 	std::string hostname;
-	std::string full_client_id;
-	Channel &channel;
+	Channel *channel;
 	int socketfd;
 	bool is_auth;
 
 public:
 	Client(int socketfd, std::string ip, std::string hostname);
-	Client();
 	~Client();
 
 	void setIp(std::string ip);
@@ -39,6 +37,7 @@ public:
 	void setHostname(std::string hostname);
 	bool isAuthentified();
 	void setAuthentified();
+	void setChannel(Channel *channel);
 
 	void forwardMessage(std::string message);
 	char mode;
