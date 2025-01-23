@@ -4,7 +4,7 @@
 #include <vector>
 #include <sstream>
 
-#define DEBUG 1
+#define DEBUG 0
 
 static sockaddr_in g_serverAddr;
 
@@ -239,7 +239,7 @@ void receiveMessage(Server &server, int clientSocket)
 				if (!server.isClientAuthenticated(clientSocket))
 				{
 					if (new_mess.getCommand() == "PASS")
-						pass(server, clientSocket, new_mess.getText().c_str());
+						pass(server, clientSocket, new_mess.getParameters()[0].c_str());
 					else
 						server.getClient(clientSocket).sendReply("451", ERR_NOTREGISTERED);
 				}
@@ -325,4 +325,16 @@ void Server::broadcast(std::string message)
 }
 
 void Server::addChannel(Channel &ch) { this->channels.insert(std::pair<std::string, Channel>(ch.getName(), ch)); }
-Channel *Server::getChannel(const std::string &name) { return &(this->channels.at(name)); }
+Channel *Server::getChannel(const std::string &name)
+{
+	Channel *ch = NULL;
+	try
+	{
+		ch = &(this->channels.at(name));
+	}
+	catch (const std::out_of_range &)
+	{
+		return NULL;
+	}
+	return ch;
+}
