@@ -58,5 +58,5 @@ class Server
 };
 
 int server();
-void	parseCommand(Server &server, int clientSocket, char *buffer);
+void	parseCommand(Server &server, int clientSocket, Message message);
 #endif
