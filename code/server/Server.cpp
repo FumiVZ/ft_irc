@@ -4,7 +4,7 @@
 #include <vector>
 #include <sstream>
 
-#define DEBUG 0
+#define DEBUG 1
 
 static sockaddr_in g_serverAddr;
 

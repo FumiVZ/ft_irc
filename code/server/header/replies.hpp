@@ -27,5 +27,7 @@ void rpl_topic(Client &c, Channel &ch);
 
 
 void err_nosuchnick(Client c, std::string nickname);
+void err_nosuchchannel(Client c, std::string channel);
+void err_erroneusnickname(Client c, std::string nickname);
 void rpl_needmoreparam(Client c, std::string command);
 #endif

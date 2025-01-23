@@ -1,5 +1,21 @@
 #include <Server.hpp>
 
+bool is_valid_nickname(const std::string &nickname)
+{
+	char valid_chars[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789[]\\`_^{|}-";
+
+	if (nickname.size() > 9)
+		return false;
+	if (!isalpha(nickname[0]) && !strchr(SPECIAL_CHARACTERS, nickname[0]))
+		return false;
+	for (size_t i = 1; i < nickname.size(); i++)
+	{
+		if (!strchr(valid_chars, nickname[i]))
+			return false;
+	}
+	return true;
+}
+
 void nick(Server &server, int clientSocket, Message message)
 {
 	if (message.getParameters().size() != 1)
@@ -13,6 +29,11 @@ void nick(Server &server, int clientSocket, Message message)
 		server.getClient(clientSocket).sendReply("431", ERR_NONICKNAMEGIVEN);
 		return;
 	}
+	if (!is_valid_nickname(nickname))
+	{
+		server.getClient(clientSocket).sendReply("432", ERR_ERRONEUSNICKNAME);
+		return;
+	}
 	if (server.isNicknameInUse(nickname))
 	{
 		server.getClient(clientSocket).sendReply("433", ERR_NICKNAMEINUSE);
@@ -20,6 +41,15 @@ void nick(Server &server, int clientSocket, Message message)
 	}
 	server.getClient(clientSocket).setNickname(nickname);
 
+}
+
+bool is_valid_username(const std::string &username)
+{
+	if (username.empty() || username.size() > MAX_MESSAGE_SIZE)
+		return false;
+	if (username.find_first_of("\0\r\n ") != std::string::npos)
+		return false;
+	return true;
 }
 
 void user(Server &server, int clientSocket, Message message)
@@ -36,8 +66,12 @@ void user(Server &server, int clientSocket, Message message)
 		server.getClient(clientSocket).sendReply("461", ERR_UNKNOWNCOMMAND);
 		return;
 	}
+	if (!is_valid_username(username))
+	{
+		server.getClient(clientSocket).sendReply("461", ERR_USERINVALID);
+		return;
+	}
 	server.getClient(clientSocket).setUsername(username);
-
 }
 
 void oper(Server &server, int clientSocket, Message message)
@@ -61,11 +95,27 @@ void quit(Server &server, int clientSocket, Message message)
 	(void)message;
 }
 
+bool is_valid_channel_name(const std::string &name)
+{
+	if (name.empty() || name.size() > MAX_CHANNEL_NAME_SIZE)
+		return false;
+	if (name[0] != '#')
+		return false;
+	if (name.find_first_of(" \a\007,:") != std::string::npos)
+		return false;
+	return true;
+}
+
 void join(Server &server, int clientSocket, Message message)
 {
 	if (message.getParameters().size() < 1)
 	{
 		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
+		return;
+	}
+	if (!is_valid_channel_name(message.getParameters()[0]))
+	{
+		err_nosuchchannel(server.getClient(clientSocket), message.getParameters()[0]);
 		return;
 	}
 	Channel *channel = server.getChannel(message.getParameters()[0]);
@@ -99,9 +149,33 @@ void part(Server &server, int clientSocket, Message message)
 
 void topic(Server &server, int clientSocket, Message message)
 {
-	(void)server;
-	(void)clientSocket;
-	(void)message;
+	if (message.getParameters().size() < 1)
+	{
+		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
+		return;
+	}
+	Channel *channel = server.getChannel(message.getParameters()[0]);
+	if (channel == NULL)
+	{
+		err_nosuchchannel(server.getClient(clientSocket), message.getParameters()[0]);
+		return;
+	}
+	if (message.getParameters().size() == 1 && message.getText().empty())
+	{
+		rpl_topic(server.getClient(clientSocket), *channel);
+	}
+	else if (!message.getText().empty())
+	{
+		channel->setTopic(message.getText());
+		channel->broadcast(server.getClient(clientSocket), " TOPIC " + channel->getName() + " :" + channel->getTopic());
+	}
+	else if (message.getParameters().size() == 2)
+	{
+		channel->setTopic(message.getParameters()[1]);
+		channel->broadcast(server.getClient(clientSocket), " TOPIC " + channel->getName() + " :" + channel->getTopic());
+	}
+	else
+		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
 }
 
 void kick(Server &server, int clientSocket, Message message)

@@ -8,7 +8,10 @@
 #include <stdexcept>
 
 #define MAX_MESSAGE_SIZE 512
+#define MAX_CHANNEL_NAME_SIZE 50
+#define MAX_NICKNAME_SIZE 9
 
+#define SPECIAL_CHARACTERS "[]\\`_^{|}"
 class Message
 {
 private:

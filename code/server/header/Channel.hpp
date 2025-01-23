@@ -20,6 +20,7 @@ public:
 	void broadcast(Client &c, std::string msg);
 	std::string getName();
 	std::string getTopic();
+	void setTopic(std::string topic);
 	std::vector<Client> &getClients();
 	std::vector<Client> &getOps();
 	void addOp(Client &op);
