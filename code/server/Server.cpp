@@ -103,6 +103,7 @@ struct sockaddr_in acceptClient(Server &server, std::vector<pollfd> &fds)
 	Client client(clientSocket, get_ip(&clientAddr.sin_addr), get_hostname(clientAddr));
 	clientPoll.fd = clientSocket;
 	clientPoll.events = POLLIN;
+	clientPoll.revents = 0;
 	fds.push_back(clientPoll);
 	std::cout << "New connection at " << get_ip(&clientAddr.sin_addr) << " (" << get_hostname(clientAddr) << ")" << std::endl;
 	server.addUser(clientSocket, client);
@@ -153,9 +154,8 @@ void serverCreation(Server &server)
 	}
 }
 
-bool pass(Server &server, int clientSocket, char *password)
+bool pass(Server &server, int clientSocket, const char *password)
 {
-	password[strlen(password) - 1] = '\0';
 	std::cout << "Password received: " << password << std::endl;
 	std::cout << "Password expected: " << server.getPasswd() << std::endl;
 	if (strcmp(password, server.getPasswd().c_str()) == 0)
@@ -174,73 +174,31 @@ bool Server::isClientAuthenticated(int clientSocket)
 	return this->users.at(clientSocket).isAuthentified();
 }
 
-// NEED FIX DONT WORK
-// void receiveMessage(Server &server, int clientSocket)
-// {
-// 	char buffer[1024] = {0};
-// 	int n = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
-// 	std::cout << "Message received: " << buffer << std::endl;
+void clear_buffer(char *buffer)
+{
+	for (size_t i = 0; i < sizeof(buffer); i++)
+		buffer[i] = '\0';
+}
 
-// 	if (n < 0)
-// 	{
-// 		std::cerr << "Error recv: " << strerror(errno) << std::endl;
-// 		close(clientSocket);
-// 		return;
-// 	}
-// 	else if (n == 0)
-// 	{
-// 		std::cout << "Client disconnected" << std::endl;
-// 		close(clientSocket);
-// 		return;
-// 	}
-// 	else
-// 	{
-// 		buffer[n] = '\0';
-// 		std::string message(buffer);
-// 		message.erase(std::remove(message.begin(), message.end(), '\r'), message.end());
-// 		std::vector<std::string> messages;
-// 		size_t pos = 0;
-// 		std::string delimiter = "\r\n";
-// 		while ((pos = message.find(delimiter)) != std::string::npos)
-// 		{
-// 			messages.push_back(message.substr(0, pos));
-// 			message.erase(0, pos + delimiter.length());
-// 		}
-// 		if (!message.empty())
-// 		{
-// 			messages.push_back(message);
-// 		}
-// 		for (size_t i = 0; i < messages.size(); ++i)
-// 		{
-// 			if (!messages[i].empty())
-// 			{
-// 				if ((strncmp(messages[i].c_str(), "PASS", 4) != 0) && server.isClientAuthenticated(clientSocket) == 0)
-// 				{
-// 					server.getClient(clientSocket).sendReply("451", "You have not registered yet use PASS <password>");
-// 					return;
-// 				}
-// 				else if (strncmp(messages[i].c_str(), "PASS", 4) == 0 && server.isClientAuthenticated(clientSocket) == 0)
-// 				{
-// 					char passwordCopy[1024];
-// 					strncpy(passwordCopy, messages[i].c_str() + 5, sizeof(passwordCopy) - 1);
-// 					passwordCopy[sizeof(passwordCopy) - 1] = '\0';
-// 					pass(server, clientSocket, passwordCopy);
-// 					return;
-// 				}
-// 				else
-// 					parseCommand(server, clientSocket, const_cast<char*>(messages[i].c_str()));
-// 			}
-// 		}
-// 	}
-// }
+std::string MakeVisible(std::string str)
+{
+	std::string result;
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		if (str[i] == '\r')
+			result += "\\r";
+		else if (str[i] == '\n')
+			result += "\\n";
+		else
+			result += str[i];
+	}
+	return result;
+}
 
 void receiveMessage(Server &server, int clientSocket)
 {
 	char buffer[1024] = {0};
 	int n = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
-	std::vector<std::string> messages;
-	
-	std::cout << "Message received: " << buffer << std::endl;
 	if (n < 0)
 	{
 		std::cerr << "Error recv: " << strerror(errno) << std::endl;
@@ -250,24 +208,57 @@ void receiveMessage(Server &server, int clientSocket)
 	else if (n == 0)
 	{
 		std::cout << "Client disconnected" << std::endl;
+		server.getClient(clientSocket).setAuth(false);
 		close(clientSocket);
 		return;
 	}
+	std::string message(buffer, n);
+	if ((message.find("\r\n") == std::string::npos))
+	{
+		message = message + "\r\n";
+		std::cout << "Message: " << MakeVisible(message) << std::endl;
+	}
 	else
 	{
-		buffer[n] = '\0';
-		if ((strncmp(buffer, "PASS", 4) != 0) && server.isClientAuthenticated(clientSocket) == 0)
+		std::cout << "Message: " << MakeVisible(message) << std::endl;
+	}
+	size_t start = 0;
+	size_t end;
+	while ((end = message.find("\r\n", start) + 2) != std::string::npos)
+	{
+		try
 		{
-			server.getClient(clientSocket).sendReply("451", "You have not registered yet use PASS <password>");
-			return;
+			Message new_mess(message.substr(start, end - start));
+			if (new_mess.getRawMessage().empty())
+			{
+				start = end;
+				continue;
+			}
+			try
+			{
+				if (!server.isClientAuthenticated(clientSocket))
+				{
+					if (new_mess.getCommand() == "PASS")
+						pass(server, clientSocket, new_mess.getText().c_str());
+					else
+						server.getClient(clientSocket).sendReply("451", ERR_NOTREGISTERED);
+				}
+				else
+					parseCommand(server, clientSocket, new_mess);
+			}
+			catch (const std::invalid_argument &e)
+			{
+				std::cerr << "Error: " << e.what() << std::endl;
+				start = end;
+				continue;
+			}
 		}
-		else if (strncmp(buffer, "PASS", 4) == 0 && server.isClientAuthenticated(clientSocket) == 0)
+		catch (const std::exception &e)
 		{
-			pass(server, clientSocket, buffer + 5);
-			return;
+			std::cerr << "Error: " << e.what() << std::endl;
 		}
-		else
-			parseCommand(server, clientSocket, buffer);
+		if (end == message.size())
+			break;
 	}
 }
 
@@ -296,10 +287,9 @@ int server()
 		}
 		for (size_t i = 0; i < fds.size(); i++)
 		{
-
-			if (fds[i].revents && fds[i].revents & POLLIN)
+			if (fds[i].revents & POLLIN)
 			{
-				if (fds[i].fd == server.getSocketfd())
+				if (i == 0 && fds[i].fd == server.getSocketfd())
 				{
 					try
 					{
@@ -311,7 +301,15 @@ int server()
 					}
 				}
 				else
+				{
 					receiveMessage(server, fds[i].fd);
+				}
+			}
+			if (fds[i].revents & POLLHUP)
+			{
+				std::cout << "Client disconnected" << std::endl;
+				close(fds[i].fd);
+				fds.erase(fds.begin() + i);
 			}
 		}
 	}
