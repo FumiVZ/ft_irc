@@ -1,14 +1,12 @@
 #include <Server.hpp>
 #include <Client.hpp>
 
-Client::Client() {};
 Client::Client(int socketfd, std::string ip, std::string hostname) : 
 	nickname(""),
 	username(""),
 	ip(ip),
 	hostname(hostname),
-	full_client_id(""),
-	channels(),
+	channel(NULL),
 	socketfd(socketfd),
 	is_auth(false)
 {};
@@ -51,3 +49,4 @@ void Client::sendReply(std::string code, std::string message)
 	std::string reply = ":" + this->getHostname() + " " + code + " " + message + "\r\n";
 	this->forwardMessage(reply);
 }
+void Client::setChannel(Channel *channel) { this->channel = channel; }

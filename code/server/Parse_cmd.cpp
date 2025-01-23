@@ -64,13 +64,18 @@ void quit(Server &server, int clientSocket, Message message)
 void join(Server &server, int clientSocket, Message message)
 {
 	Channel *channel = server.getChannel(message.getParameters()[0]);
+	Client &client = server.getClient(clientSocket);
 	if (channel != NULL)
 	{
-		channel->addClient(server.getClient(clientSocket));
+		channel->addClient(client);
+		client.setChannel(channel);
+		std::cout << "Client " << client.getNickname() << " joined channel " << channel->getName() << std::endl;
 		return;
 	}
-	Channel channel(message.getParameters()[0], server.getClient(clientSocket));
-	server.
+	Channel newChannel(message.getParameters()[0], client);
+	server.addChannel(newChannel);
+	client.setChannel(&newChannel);
+	std::cout << "Client " << client.getNickname() << " created channel " << newChannel.getName() << std::endl;
 }
 
 void part(Server &server, int clientSocket, Message message)
