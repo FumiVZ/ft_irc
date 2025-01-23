@@ -21,8 +21,9 @@
 #define ERR_WRONGPARAMCOUNT "Wrong number of parameters"
 #define ERR_NOTREGISTERED "You have not registered"
 void rpl_welcome(Client client);
-void rpl_endofnames(Client c, std::string server_hostname);
-void rpl_namreply(Client c, Channel ch, std::string server_hostname);
+void rpl_endofnames(Client &c);
+void rpl_namreply(Client &c, Channel &ch);
+void rpl_topic(Client &c, Channel &ch);
 
 
 void err_nosuchnick(Client c, std::string nickname);

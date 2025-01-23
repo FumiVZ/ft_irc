@@ -63,7 +63,7 @@ void quit(Server &server, int clientSocket, Message message)
 
 void join(Server &server, int clientSocket, Message message)
 {
-	if (message.getParameters().size() != 1)
+	if (message.getParameters().size() < 1)
 	{
 		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
 		return;
@@ -73,14 +73,21 @@ void join(Server &server, int clientSocket, Message message)
 	if (channel != NULL)
 	{
 		channel->addClient(client);
-		client.setChannel(channel);
-		std::cout << "Client " << client.getNickname() << " joined channel " << channel->getName() << std::endl;
+		client.addChannel(channel);
+		channel->broadcast(client, " JOIN " + channel->getName());
+		rpl_topic(client, *channel);
+		rpl_namreply(client, *channel);
+		rpl_endofnames(client);
 		return;
 	}
-	Channel newChannel(message.getParameters()[0], client);
-	server.addChannel(newChannel);
-	client.setChannel(&newChannel);
-	std::cout << "Client " << client.getNickname() << " created channel " << newChannel.getName() << std::endl;
+	Channel *new_channel = new Channel(message.getParameters()[0], client);
+	server.addChannel(*new_channel);
+	client.addChannel(new_channel);
+	new_channel->broadcast(client, " JOIN " + new_channel->getName());
+	rpl_topic(client, *new_channel);
+	rpl_namreply(client, *new_channel);
+	rpl_endofnames(client);
+	
 }
 
 void part(Server &server, int clientSocket, Message message)
@@ -154,20 +161,6 @@ void sendfile(Server &server, int clientSocket, Message message)
 	(void)message;
 }
 
-static std::string MakeVisible(std::string str)
-{
-	std::string result;
-	for (size_t i = 0; i < str.size(); i++)
-	{
-		if (str[i] == '\r')
-			result += "\\r";
-		else if (str[i] == '\n')
-			result += "\\n";
-		else
-			result += str[i];
-	}
-	return result;
-}
 
 void parseCommand(Server &server, int clientSocket, Message message)
 {
@@ -218,7 +211,6 @@ void parseCommand(Server &server, int clientSocket, Message message)
 		{
 			if (message.getCommand() == commands[i])
 			{
-				std::cout << "Message raw: " << MakeVisible(message.getRawMessage()) << std::endl;
 				functions[i](server, clientSocket, message);
 				return;
 			}
