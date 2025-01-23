@@ -10,6 +10,7 @@ Message::Message(const std::string &message) : _raw_message(message)
 	}
 	if (message.length() < 2)
 	{
+		std::cout << message << std::endl;
 		throw std::invalid_argument("Message too short");
 	}
 	if (message.length() > MAX_MESSAGE_SIZE)
@@ -22,11 +23,11 @@ Message::Message(const std::string &message) : _raw_message(message)
 	}
 	if (message[message.length() - 1] != '\n')
 	{
-		throw std::invalid_argument("Message does not end with a newline");
+		throw std::invalid_argument("Message does not end with \\n");
 	}
 	if (message[message.length() - 2] != '\r')
 	{
-		throw std::invalid_argument("Message does not end with a carriage return");
+		throw std::invalid_argument("Message does not end with \\r");
 	}
 	parse();
 }
@@ -93,7 +94,6 @@ void Message::parse()
 		msg = msg.substr(pos + 1);
 		_nb_parameters++;
 	}
-
 	if (!isValidMessage())
 	{
 		throw std::invalid_argument("Invalid IRC message format");

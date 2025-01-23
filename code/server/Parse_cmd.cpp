@@ -63,6 +63,11 @@ void quit(Server &server, int clientSocket, Message message)
 
 void join(Server &server, int clientSocket, Message message)
 {
+	if (message.getParameters().size() != 1)
+	{
+		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
+		return;
+	}
 	Channel *channel = server.getChannel(message.getParameters()[0]);
 	Client &client = server.getClient(clientSocket);
 	if (channel != NULL)
@@ -126,8 +131,9 @@ void privmsg(Server &server, int clientSocket, Message message)
 			server.getClient(clientSocket).sendReply("401", ERR_NOSUCHNICK);
 			return;
 		}
-		targetClient.sendReply("PRIVMSG", server.getClient(clientSocket).getNickname() + " " + text);
-		server.getClient(clientSocket).sendReply("PRIVMSG", server.getClient(clientSocket).getNickname() + " " + text);
+		std::cout << "Sending message to: " << targetClient.getNickname() << std::endl;
+		std::cout << "Message: " << text << std::endl;
+		targetClient.sendReply("PRIVMSG", text);
 	}
 }
 
@@ -148,11 +154,23 @@ void sendfile(Server &server, int clientSocket, Message message)
 	(void)message;
 }
 
-void parseCommand(Server &server, int clientSocket, char *buffer)
+static std::string MakeVisible(std::string str)
 {
-	try
+	std::string result;
+	for (size_t i = 0; i < str.size(); i++)
 	{
-		Message message(buffer);
+		if (str[i] == '\r')
+			result += "\\r";
+		else if (str[i] == '\n')
+			result += "\\n";
+		else
+			result += str[i];
+	}
+	return result;
+}
+
+void parseCommand(Server &server, int clientSocket, Message message)
+{
 	size_t i = 0;
 	const char *commands[] = {
 		"NICK",
@@ -183,36 +201,33 @@ void parseCommand(Server &server, int clientSocket, char *buffer)
 		&sendfile,
 	};
 	size_t num_commands = sizeof(commands) / sizeof(commands[0]);
-	if (server.getClient(clientSocket).getNickname().empty() && strncmp(buffer, "NICK", 4) != 0)
+	if (server.getClient(clientSocket).getNickname().empty() && message.getCommand() != "NICK")
 	{
 		server.getClient(clientSocket).sendReply("451", ERR_NICKNAMEUNSET);
 		return;
 	}
-	if (server.getClient(clientSocket).getUsername().empty() && strncmp(buffer, "USER", 4) != 0 && strncmp(buffer, "NICK", 4) != 0)
+	if (server.getClient(clientSocket).getUsername().empty() && message.getCommand() != "USER" && message.getCommand() != "NICK")
 	{
 		server.getClient(clientSocket).sendReply("451", ERR_USERNAMEUNSET);
 		return;
 	}
+
 	while (i < num_commands)
 	{
 		try
 		{
 			if (message.getCommand() == commands[i])
 			{
-				std::cout << "here" << std::endl;
+				std::cout << "Message raw: " << MakeVisible(message.getRawMessage()) << std::endl;
 				functions[i](server, clientSocket, message);
 				return;
 			}
 		}
 		catch (const std::exception &e)
 		{
+			std::cout << "Error: " << e.what() << std::endl;
 			break;
 		}
 		i++;
-	}
-	}
-	catch (const std::invalid_argument &e)
-	{
-		server.getClient(clientSocket).sendReply("421", ERR_UNKNOWNCOMMAND);
 	}
 }

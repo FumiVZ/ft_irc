@@ -60,7 +60,7 @@ class Server
 };
 
 int server();
-void	parseCommand(Server &server, int clientSocket, char *buffer);
+void	parseCommand(Server &server, int clientSocket, Message message);
 std::string get_ip(struct in_addr *in);
 std::string get_hostname(struct sockaddr_in &clientAddr);
 std::string get_g_hostname();
