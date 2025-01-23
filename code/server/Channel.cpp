@@ -28,8 +28,9 @@ void Channel::broadcast(Client &c, std::string msg)
 	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
 	{
 		if (it->getSocketfd() != c.getSocketfd())
-			it->forwardMessage(":" + c.getNickname() + "!" + c.getUsername() + "@" + c.getHostname() + " PRIVMSG " + this->name + " :" + msg);
+			it->forwardMessage(":" + c.getNickname() + "!" + c.getUsername() + "@" + c.getHostname() + msg + "\r\n");
 	}
 }
 
 void Channel::addClient(Client &c) { this->clients.push_back(c); }
+std::string Channel::getTopic() { return this->topic; }

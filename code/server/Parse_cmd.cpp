@@ -68,8 +68,7 @@ void quit(Server &server, int clientSocket, Message message)
 
 void join(Server &server, int clientSocket, Message message)
 {
-	std::cout << "Joining channel" << std::endl;
-	if (message.getParameters().size() != 1)
+	if (message.getParameters().size() < 1)
 	{
 		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
 		return;
@@ -79,14 +78,21 @@ void join(Server &server, int clientSocket, Message message)
 	if (channel != NULL)
 	{
 		channel->addClient(client);
-		client.setChannel(channel);
-		std::cout << "Client " << client.getNickname() << " joined channel " << channel->getName() << std::endl;
+		client.addChannel(channel);
+		channel->broadcast(client, " JOIN " + channel->getName());
+		rpl_topic(client, *channel);
+		rpl_namreply(client, *channel);
+		rpl_endofnames(client);
 		return;
 	}
-	Channel newChannel(message.getParameters()[0], client);
-	server.addChannel(newChannel);
-	client.setChannel(&newChannel);
-	std::cout << "Client " << client.getNickname() << " created channel " << newChannel.getName() << std::endl;
+	Channel *new_channel = new Channel(message.getParameters()[0], client);
+	server.addChannel(*new_channel);
+	client.addChannel(new_channel);
+	new_channel->broadcast(client, " JOIN " + new_channel->getName());
+	rpl_topic(client, *new_channel);
+	rpl_namreply(client, *new_channel);
+	rpl_endofnames(client);
+	
 }
 
 void part(Server &server, int clientSocket, Message message)

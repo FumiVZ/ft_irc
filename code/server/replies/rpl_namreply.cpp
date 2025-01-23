@@ -2,7 +2,7 @@
 #include <Channel.hpp>
 #include <Server.hpp>
 
-void rpl_namreply(Client c, Channel ch)
+void rpl_namreply(Client &c, Channel &ch)
 {
 	std::string reply = ":" + get_g_hostname() + " 353 " + c.getNickname() + " = " + ch.getName() + " :";
 	std::vector<Client> clients = ch.getClients();

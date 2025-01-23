@@ -6,7 +6,7 @@ Client::Client(int socketfd, std::string ip, std::string hostname) :
 	username(""),
 	ip(ip),
 	hostname(hostname),
-	channel(NULL),
+	channels(),
 	socketfd(socketfd),
 	is_auth(false)
 {};
@@ -49,4 +49,4 @@ void Client::sendReply(std::string code, std::string message)
 	std::string reply = ":" + this->getHostname() + " " + code + " " + message + "\r\n";
 	this->forwardMessage(reply);
 }
-void Client::setChannel(Channel *channel) { this->channel = channel; }
+void Client::addChannel(Channel *channel) { this->channels.push_back(channel); }
