@@ -1,6 +1,6 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
-#define PORT 6667
+#define PORT 6666
 
 #ifdef __cplusplus
 extern "C" {

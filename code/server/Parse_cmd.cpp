@@ -54,8 +54,13 @@ bool is_valid_username(const std::string &username)
 
 void user(Server &server, int clientSocket, Message message)
 {
+	if (!server.getClient(clientSocket).getUsername().empty())
+	{
+		server.getClient(clientSocket).sendReply("462", ERR_ALREADYREGISTERED);
+		return;
+	}
 	std::vector<std::string> parameters = message.getParameters();
-	if (parameters.size() != 4)
+	if (parameters.size() != 3)
 	{
 		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
 		return;
@@ -72,6 +77,7 @@ void user(Server &server, int clientSocket, Message message)
 		return;
 	}
 	server.getClient(clientSocket).setUsername(username);
+	rpl_welcome(server.getClient(clientSocket));
 }
 
 void oper(Server &server, int clientSocket, Message message)
