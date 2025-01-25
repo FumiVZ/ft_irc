@@ -37,6 +37,7 @@ public:
 	void setHostname(std::string hostname);
 	bool isAuthentified();
 	void setAuthentified();
+	bool isNamed();
 	void addChannel(Channel *channel);
 
 	void forwardMessage(std::string message);

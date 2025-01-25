@@ -109,6 +109,7 @@ struct sockaddr_in acceptClient(Server &server, std::vector<pollfd> &fds)
 	server.addUser(clientSocket, client);
 	if (DEBUG == 1)
 	{
+		std::cout << "debug Client" << std::endl;
 		std::string nickname = "test";
 		server.getClient(clientSocket).setAuth(true);
 		if (!(server.isNicknameInUse(nickname)))
@@ -259,6 +260,18 @@ void receiveMessage(Server &server, int clientSocket)
 		}
 		if (end == message.size())
 			break;
+	}
+}
+
+void auth_client(Server &server, int clientSocket, Message message)
+{
+	if (message.getCommand() == "PASS")
+	{
+		pass(server, clientSocket, message.getParameters()[0].c_str());
+	}
+	else
+	{
+		server.getClient(clientSocket).sendReply("451", ERR_NOTREGISTERED);
 	}
 }
 

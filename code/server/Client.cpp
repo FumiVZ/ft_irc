@@ -44,6 +44,7 @@ bool Client::operator==(const Client &c) const { return this->getSocketfd() == c
 void Client::forwardMessage(std::string message) { send(this->getSocketfd(), message.c_str(), message.size(), 0); }
 void Client::sendMsg(std::string msg, Channel &ch) { ch.broadcast(*this, msg); }
 void Client::sendMsg(std::string msg, Client &c) { c.forwardMessage(msg); }
+bool Client::isNamed() { return (!this->nickname.empty() && !this->username.empty()); }
 void Client::sendReply(std::string code, std::string message)
 {
 	std::string reply = ":" + this->getHostname() + " " + code + " " + message + "\r\n";

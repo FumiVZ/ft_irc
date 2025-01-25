@@ -20,6 +20,7 @@
 #define ERR_NOSUCHNICK "No such nick/channel"
 #define ERR_WRONGPARAMCOUNT "Wrong number of parameters"
 #define ERR_NOTREGISTERED "You have not registered"
+#define ERR_ALREADYREGISTERED "You may not reregister"
 void rpl_welcome(Client client);
 void rpl_endofnames(Client &c);
 void rpl_namreply(Client &c, Channel &ch);
