@@ -92,6 +92,16 @@ const std::string &Server::getPasswd()
 	return this->passwd;
 }
 
+std::vector<pollfd> Server::getFds()
+{
+	return this->fds;
+}
+
+void Server::setFds(std::vector<pollfd> fds)
+{
+	this->fds = fds;
+}
+
 struct sockaddr_in acceptClient(Server &server, std::vector<pollfd> &fds)
 {
 	struct sockaddr_in clientAddr;
@@ -172,12 +182,6 @@ bool Server::isClientAuthenticated(int clientSocket)
 	return this->users.at(clientSocket).isAuthentified();
 }
 
-void clear_buffer(char *buffer)
-{
-	for (size_t i = 0; i < sizeof(buffer); i++)
-		buffer[i] = '\0';
-}
-
 std::string MakeVisible(std::string str)
 {
 	std::string result;
@@ -191,6 +195,12 @@ std::string MakeVisible(std::string str)
 			result += str[i];
 	}
 	return result;
+}
+
+void clear_buffer(char *buffer)
+{
+	for (size_t i = 0; i < sizeof(buffer); i++)
+		buffer[i] = '\0';
 }
 
 void receiveMessage(Server &server, int clientSocket)
@@ -211,9 +221,17 @@ void receiveMessage(Server &server, int clientSocket)
 		return;
 	}
 	std::string message(buffer, n);
-	if ((message.find("\r\n") == std::string::npos))
-		message = message + "\r\n";
+	if (server.getClient(clientSocket).getBuffer().size() != 0)
+	{
+		message = server.getClient(clientSocket).getBuffer() + message;
+		server.getClient(clientSocket).setBuffer("");
+	}
 	std::cout << "Received message from " << server.getClient(clientSocket).getNickname() << ": " << MakeVisible(message) << std::endl;
+	if ((message.find("\r\n") == std::string::npos))
+	{
+		server.getClient(clientSocket).setBuffer(message);
+		return;
+	}
 	size_t start = 0;
 	size_t end;
 	while ((end = message.find("\r\n", start)) != std::string::npos)
@@ -254,6 +272,11 @@ void receiveMessage(Server &server, int clientSocket)
 		if (start >= message.size())
 			break;
 	}
+	if (start < message.size())
+	{
+		server.getClient(clientSocket).setBuffer(message.substr(start));
+	}
+	clear_buffer(buffer);
 }
 
 void Server::addUser(int socketfd, Client client)
@@ -296,6 +319,7 @@ int server()
 				}
 				else
 				{
+					server.setFds(fds);
 					receiveMessage(server, fds[i].fd);
 				}
 			}
@@ -304,6 +328,14 @@ int server()
 				std::cout << "Client disconnected" << std::endl;
 				close(fds[i].fd);
 				fds.erase(fds.begin() + i);
+				if (server.getClient(fds[i].fd).getChannels().size() != 0)
+				{
+					for (size_t j = 0; j < server.getClient(fds[i].fd).getChannels().size(); j++)
+					{
+						server.getClient(fds[i].fd).getChannels()[j]->removeClient(server.getClient(fds[i].fd));
+					}
+				}
+				
 			}
 		}
 	}
