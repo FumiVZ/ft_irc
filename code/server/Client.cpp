@@ -7,6 +7,7 @@ Client::Client(int socketfd, std::string ip, std::string hostname) :
 	ip(ip),
 	hostname(hostname),
 	channels(),
+	buffer(""),
 	socketfd(socketfd),
 	is_auth(false)
 {};
@@ -29,6 +30,12 @@ int client()
 {
 	return 0;
 }
+
+void Client::setBuffer(std::string buffer) { this->buffer = buffer; }
+std::string Client::getBuffer() { return this->buffer; }
+
+std::vector<Channel *> &Client::getChannels() { return this->channels; }
+
 
 void Client::setSocketfd(int socketfd) { this->socketfd = socketfd; }
 int Client::getSocketfd() const { return this->socketfd; }

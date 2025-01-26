@@ -28,6 +28,7 @@ extern "C" {
 #include <poll.h>
 #include <cstring>
 #include <errno.h>
+#include <string>
 
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -38,6 +39,7 @@ class Server
 	private:
 		std::map<int, Client> users;
 		std::map<std::string, Channel> channels;
+		std::vector<pollfd> fds;
 		std::string passwd;
 		int socketfd;
 		sockaddr_in serverAddress;
@@ -57,6 +59,8 @@ class Server
 		const std::string &getPasswd();
 		void addChannel(Channel &ch);
 		Channel *getChannel(const std::string &name);
+		void setFds(std::vector<pollfd> fds);
+		std::vector<pollfd> getFds();
 };
 
 int server();
