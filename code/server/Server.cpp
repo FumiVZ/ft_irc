@@ -4,7 +4,7 @@
 #include <vector>
 #include <sstream>
 
-#define DEBUG 1
+#define DEBUG 0
 
 static sockaddr_in g_serverAddr;
 
@@ -92,6 +92,16 @@ const std::string &Server::getPasswd()
 	return this->passwd;
 }
 
+std::vector<pollfd> Server::getFds()
+{
+	return this->fds;
+}
+
+void Server::setFds(std::vector<pollfd> fds)
+{
+	this->fds = fds;
+}
+
 struct sockaddr_in acceptClient(Server &server, std::vector<pollfd> &fds)
 {
 	struct sockaddr_in clientAddr;
@@ -157,8 +167,6 @@ void serverCreation(Server &server)
 
 bool pass(Server &server, int clientSocket, const char *password)
 {
-	std::cout << "Password received: " << password << std::endl;
-	std::cout << "Password expected: " << server.getPasswd() << std::endl;
 	if (strcmp(password, server.getPasswd().c_str()) == 0)
 	{
 		std::cout << "Authentification réussie" << std::endl;
@@ -175,12 +183,6 @@ bool Server::isClientAuthenticated(int clientSocket)
 	return this->users.at(clientSocket).isAuthentified();
 }
 
-void clear_buffer(char *buffer)
-{
-	for (size_t i = 0; i < sizeof(buffer); i++)
-		buffer[i] = '\0';
-}
-
 std::string MakeVisible(std::string str)
 {
 	std::string result;
@@ -194,6 +196,12 @@ std::string MakeVisible(std::string str)
 			result += str[i];
 	}
 	return result;
+}
+
+void clear_buffer(char *buffer)
+{
+	for (size_t i = 0; i < sizeof(buffer); i++)
+		buffer[i] = '\0';
 }
 
 void receiveMessage(Server &server, int clientSocket)
@@ -214,19 +222,21 @@ void receiveMessage(Server &server, int clientSocket)
 		return;
 	}
 	std::string message(buffer, n);
+	if (server.getClient(clientSocket).getBuffer().size() != 0)
+	{
+		message = server.getClient(clientSocket).getBuffer() + message;
+		server.getClient(clientSocket).setBuffer("");
+	}
 	if ((message.find("\r\n") == std::string::npos))
 	{
-		message = message + "\r\n";
-		std::cout << "Message: " << MakeVisible(message) << std::endl;
-	}
-	else
-	{
-		std::cout << "Message: " << MakeVisible(message) << std::endl;
+		server.getClient(clientSocket).setBuffer(message);
+		return;
 	}
 	size_t start = 0;
 	size_t end;
-	while ((end = message.find("\r\n", start) + 2) != std::string::npos)
+	while ((end = message.find("\r\n", start)) != std::string::npos)
 	{
+		end += 2;
 		try
 		{
 			Message new_mess(message.substr(start, end - start));
@@ -245,7 +255,9 @@ void receiveMessage(Server &server, int clientSocket)
 						server.getClient(clientSocket).sendReply("451", ERR_NOTREGISTERED);
 				}
 				else
+				{
 					parseCommand(server, clientSocket, new_mess);
+				}
 			}
 			catch (const std::invalid_argument &e)
 			{
@@ -258,9 +270,15 @@ void receiveMessage(Server &server, int clientSocket)
 		{
 			std::cerr << "Error: " << e.what() << std::endl;
 		}
-		if (end == message.size())
+		start = end;
+		if (start >= message.size())
 			break;
 	}
+	if (start < message.size())
+	{
+		server.getClient(clientSocket).setBuffer(message.substr(start));
+	}
+	clear_buffer(buffer);
 }
 
 void auth_client(Server &server, int clientSocket, Message message)
@@ -315,6 +333,7 @@ int server()
 				}
 				else
 				{
+					server.setFds(fds);
 					receiveMessage(server, fds[i].fd);
 				}
 			}
@@ -323,6 +342,14 @@ int server()
 				std::cout << "Client disconnected" << std::endl;
 				close(fds[i].fd);
 				fds.erase(fds.begin() + i);
+				if (server.getClient(fds[i].fd).getChannels().size() != 0)
+				{
+					for (size_t j = 0; j < server.getClient(fds[i].fd).getChannels().size(); j++)
+					{
+						server.getClient(fds[i].fd).getChannels()[j]->removeClient(server.getClient(fds[i].fd));
+					}
+				}
+				
 			}
 		}
 	}

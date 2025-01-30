@@ -9,7 +9,7 @@
 #define ERR_NICKNAME "Invalid nickname"
 #define ERR_USERINVALID "Invalid username"
 #define ERR_UNKNOWNCOMMAND "Unknown command"
-#define ERR_USERNAMEUNSET "You must set a username (USER <username>)"
+#define ERR_USERNAMEUNSET "You must set a username (USER <username> * 8 <:realname>)"
 #define ERR_ERRONEUSNICKNAME "Erroneus nickname"
 #define ERR_NICKTOOLONG "Nickname too long"
 #define ERR_NICKCOLLISION "Nickname collision"
@@ -21,6 +21,14 @@
 #define ERR_WRONGPARAMCOUNT "Wrong number of parameters"
 #define ERR_NOTREGISTERED "You have not registered"
 #define ERR_ALREADYREGISTERED "You may not reregister"
+#define ERR_CHANOPRIVSNEEDED "You're not a channel operator"
+#define ERR_NOTONCHANNEL "You're not on that channel"
+#define ERR_NEEDMOREPARAMS "Not enough parameters"
+#define ERR_NOSUCHCHANNEL "No such channel"
+#define ERR_USERNOTINCHANNEL "User not in channel"
+#define ERR_USERSDONTMATCH "Users don't match"
+#define ERR_CHANNELISFULL "Channel is full"
+#define ERR_BADCHANNELKEY "Bad channel key"
 void rpl_welcome(Client client);
 void rpl_endofnames(Client &c);
 void rpl_namreply(Client &c, Channel &ch);
