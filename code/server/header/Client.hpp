@@ -16,6 +16,7 @@ private:
 	std::string ip;
 	std::string hostname;
 	std::vector<Channel *> channels;
+	std::string buffer;
 	int socketfd;
 	bool is_auth;
 
@@ -39,6 +40,9 @@ public:
 	void setAuthentified();
 	bool isNamed();
 	void addChannel(Channel *channel);
+	std::vector<Channel *> &getChannels();
+	void setBuffer(std::string buffer);
+	std::string getBuffer();
 
 	void forwardMessage(std::string message);
 	char mode;
