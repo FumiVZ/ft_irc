@@ -39,6 +39,10 @@ void nick(Server &server, int clientSocket, Message message)
 		server.getClient(clientSocket).sendReply("433", ERR_NICKNAMEINUSE);
 		return;
 	}
+	//if (!server.getClient(clientSocket).getNickname().empty())
+	//{
+	//	server.bor
+	//}
 	server.getClient(clientSocket).setNickname(nickname);
 	std::cout << "Client nick is: " << server.getClient(clientSocket).getNickname() << std::endl;
 }
@@ -77,6 +81,7 @@ void user(Server &server, int clientSocket, Message message)
 		return;
 	}
 	server.getClient(clientSocket).setUsername(username);
+	rpl_welcome(server.getClient(clientSocket));
 }
 
 void oper(Server &server, int clientSocket, Message message)
