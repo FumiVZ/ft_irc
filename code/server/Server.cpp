@@ -132,7 +132,6 @@ struct sockaddr_in acceptClient(Server &server, std::vector<pollfd> &fds)
 		oss << clientSocket;
 		server.getClient(clientSocket).sendReply("001", "User " + server.getClient(clientSocket).getNickname() + "nick: " + server.getClient(clientSocket).getNickname() + "clientsocket: " + oss.str());
 	}
-	rpl_welcome(client);
 	return clientAddr;
 }
 
