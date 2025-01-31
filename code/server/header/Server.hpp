@@ -60,7 +60,8 @@ class Server
 		void addChannel(Channel &ch);
 		Channel *getChannel(const std::string &name);
 		void setFds(std::vector<pollfd> fds);
-		std::vector<pollfd> getFds();
+		std::vector<pollfd> &getFds();
+		void removeUser(int socketfd, std::vector<pollfd> &fds);
 };
 
 int server();

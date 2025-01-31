@@ -40,6 +40,7 @@ public:
 	void removeMode(char mode);
 	void ChannelIsTrue(char mode);
 	std::string getPasswd();
+	void disconnect(Client &c);
 	~Channel();
 };
 
