@@ -4,6 +4,7 @@
 #include <Channel.hpp>
 #include <vector>
 #include <string>
+#include <stdexcept>
 
 #define USERLEN 12
 
@@ -59,6 +60,9 @@ public:
 	void sendMsg(std::string msg, Channel &ch);
 	void sendMsg(std::string msg, Client &c);
 	void sendReply(std::string code, std::string message);
+	static std::runtime_error disconnected;
+
+	void disconnect();
 };
 
 #endif
