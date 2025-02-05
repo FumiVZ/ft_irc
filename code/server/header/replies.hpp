@@ -1,6 +1,8 @@
 #ifndef REPLIES_HPP
 #define REPLIES_HPP
+
 #include <Client.hpp>
+
 #define ERR_WRONGPARAM "Wrong usage use: ./ircserv <port> <password>"
 #define ERR_PASSWDMISMATCH "Password incorrect use PASS <password>"
 #define ERR_NICKNAMEINUSE "This nickname is already in use"
@@ -32,6 +34,11 @@
 #define ERR_BADCHANNELKEY "Bad channel key"
 #define ERR_UNKNOWNMODE "Unknown mode"
 #define ERR_INVITEONLYCHAN "Invite only channel"
+#define ERR_NOSUCHANNEL "No such channel"
+#define ERR_NOSUCHUSER "No such user"
+#define ERR_NOSUCHNICKNAME "No such nickname"
+#define ERR_NEEDMOREPARAM "Need more parameters"
+#define ERR_ERRONEUSNICK "Erroneus nickname"
 void rpl_welcome(Client client);
 void rpl_endofnames(Client &c);
 void rpl_namreply(Client &c, Channel &ch);
@@ -39,9 +46,6 @@ void rpl_topic(Client &c, Channel &ch);
 void rpl_invite(Client &requester, Client &target, Channel *channel);
 void rpl_motd(Client &client);
 
-void err_nosuchnick(Client c, std::string nickname);
-void err_nosuchchannel(Client c, std::string channel);
-void err_erroneusnickname(Client c, std::string nickname);
 void rpl_needmoreparam(Client c, std::string command);
 
 #endif

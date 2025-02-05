@@ -25,6 +25,7 @@ void nick(Server &server, int clientSocket, Message message)
 		return;
 	}
 	std::string nickname = message.getParameters()[0];
+	std::cout << "Nickname: " << nickname << std::endl;
 	if (nickname.empty())
 	{
 		std::cout << "Nickname is empty" << std::endl;
@@ -109,12 +110,14 @@ bool isNumeric(const std::string &str)
 	return true;
 }
 
-// MODE <channel>  <mode> <+/-> <~nickname>
-/*— t : Définir/supprimer les restrictions de la commande TOPIC pour les opé-
+/*
+ MODE <channel>  <mode> <+/-> <~nickname>
+— t : Définir/supprimer les restrictions de la commande TOPIC pour les opé-
 rateurs de canaux
 — k : Définir/supprimer la clé du canal (mot de passe)
 — o : Donner/retirer le privilège de l’opérateur de canal
-— l : Définir/supprimer la limite d’utilisateurs pour le canal*/
+— l : Définir/supprimer la limite d’utilisateurs pour le canal
+*/
 void mode(Server &server, int clientSocket, Message message)
 {
 	std::cout << message.getParameters().size() << std::endl;
@@ -123,7 +126,7 @@ void mode(Server &server, int clientSocket, Message message)
 		Channel *channel = server.getChannel(message.getParameters()[0]);
 		if (channel == NULL)
 		{
-			err_nosuchchannel(server.getClient(clientSocket), message.getParameters()[0]);
+			server.getClient(clientSocket).sendReply("403", ERR_NOSUCHCHANNEL);
 			return;
 		}
 		server.getClient(clientSocket).sendReply("324", "RPL_CHANNELMODEIS " + channel->getName() + " +" + channel->getModes());
@@ -137,13 +140,10 @@ void mode(Server &server, int clientSocket, Message message)
 	std::string channel_name = message.getParameters()[0];
 	std::string mode_op = message.getParameters()[1];
 	std::string argument = message.getParameters()[2];
-	std::cout << "CHANNEL:" << channel_name << std::endl;
-	std::cout << "ARGUMENT" << argument << std::endl;
-	std::cout << "MODE OP" << mode_op << std::endl;
 	Channel *channel = server.getChannel(channel_name);
 	if (channel == NULL)
 	{
-		err_nosuchchannel(server.getClient(clientSocket), channel_name);
+		server.getClient(clientSocket).sendReply("403", ERR_NOSUCHCHANNEL);
 		return;
 	}
 	if (mode_op != "+t" && mode_op != "-t" && mode_op != "+k" && mode_op != "-k" && mode_op != "+o" && mode_op != "-o" && mode_op != "+l" && mode_op != "-l")
@@ -312,12 +312,12 @@ void join(Server &server, int clientSocket, Message message)
 	}
 	if (!is_valid_channel_name(message.getParameters()[0]))
 	{
-		err_nosuchchannel(server.getClient(clientSocket), message.getParameters()[0]);
+		server.getClient(clientSocket).sendReply("403", ERR_NOSUCHCHANNEL);
 		return;
 	}
 	if (message.getParameters()[0][0]  != '#')
 	{
-		err_nosuchchannel(server.getClient(clientSocket), message.getParameters()[0]);
+		server.getClient(clientSocket).sendReply("403", ERR_NOSUCHCHANNEL);
 		return;
 	}
 	Channel *channel = server.getChannel(message.getParameters()[0]);
@@ -375,7 +375,7 @@ void topic(Server &server, int clientSocket, Message message)
 	Channel *channel = server.getChannel(message.getParameters()[0]);
 	if (channel == NULL)
 	{
-		err_nosuchchannel(server.getClient(clientSocket), message.getParameters()[0]);
+		server.getClient(clientSocket).sendReply("403", ERR_NOSUCHCHANNEL);
 		return;
 	}
 	if (message.getParameters().size() == 1 && message.getText().empty())
