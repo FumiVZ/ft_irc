@@ -41,6 +41,7 @@ public:
 	std::string getPasswd();
 	bool getTopicIsTrue();
 	void disconnect(Client &c);
+	bool isMode(char mode);
 	~Channel();
 };
 
