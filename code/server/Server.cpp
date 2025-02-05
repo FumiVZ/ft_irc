@@ -320,6 +320,7 @@ void Server::removeUser(int socketfd, std::vector<pollfd> &fds)
 			if (fds[i].fd == socketfd)
 			{
 				fds.erase(fds.begin() + i);
+				close(socketfd);
 				break;
 			}
 		}
@@ -379,6 +380,7 @@ int server(char *port, char *password)
 					{
 						std::cout << "Client disconnected" << std::endl;
 						server.removeUser(fds[i].fd, fds);
+						break;
 					}
 				}
 			}

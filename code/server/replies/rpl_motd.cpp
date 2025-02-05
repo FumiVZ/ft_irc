@@ -14,6 +14,8 @@ void rpl_motd(Client &client)
 	}
 	std::string line;
 	while (std::getline(file, line))
-		client.sendReply("375", line);
+	{
+		client.forwardMessage(line + "\r\n");
+	}
 	file.close();
 }
