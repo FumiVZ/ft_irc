@@ -271,7 +271,6 @@ void part(Server &server, int clientSocket, Message message)
 
 void topic(Server &server, int clientSocket, Message message)
 {
-	// protect +t
 	Client &client = server.getClient(clientSocket);
 	if (message.getParameters().size() < 1)
 	{
@@ -467,6 +466,7 @@ void parseCommand(Server &server, int clientSocket, Message message)
 		catch (const std::exception &e)
 		{
 			std::cout << "Error: " << e.what() << std::endl;
+			server.removeUser(clientSocket, server.getFds());
 			break;
 		}
 		i++;
