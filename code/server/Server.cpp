@@ -312,6 +312,19 @@ void Server::removeUser(int socketfd, std::vector<pollfd> &fds)
 	user.disconnect();
 	this->users.erase(socketfd);
 	close (socketfd);
+	this->removeEmptyChannels();
+}
+
+void Server::removeEmptyChannels()
+{
+	std::map<std::string, Channel>::iterator it = this->channels.begin();
+	while (it != this->channels.end())
+	{
+		if (it->second.getClients().size() == 0)
+			this->channels.erase(it++);
+		else
+			++it;
+	}
 }
 
 int server()
