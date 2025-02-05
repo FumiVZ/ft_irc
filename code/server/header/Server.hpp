@@ -65,6 +65,7 @@ class Server
 		void setFds(std::vector<pollfd> fds);
 		std::vector<pollfd> &getFds();
 		void removeUser(int socketfd, std::vector<pollfd> &fds);
+		void removeEmptyChannels();
 };
 
 int server(char *port, char *password);
