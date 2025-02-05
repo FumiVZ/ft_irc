@@ -16,6 +16,7 @@ private:
 	std::string topic;
 	std::vector<char> modes;
 	size_t limit;
+	bool topicIsTrue;
 public:
 	Channel(std::string name, Client &owner);
 	void broadcast(Client &c, std::string msg);
@@ -38,6 +39,7 @@ public:
 	std::string getModes();
 	void ChannelIsTrue(char mode);
 	std::string getPasswd();
+	bool getTopicIsTrue();
 	void disconnect(Client &c);
 	~Channel();
 };

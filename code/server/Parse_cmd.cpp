@@ -86,18 +86,8 @@ void user(Server &server, int clientSocket, Message message)
 	}
 	server.getClient(clientSocket).setUsername(username);
 	rpl_welcome(server.getClient(clientSocket));
-<<<<<<< HEAD
 	if (server.getClient(clientSocket).getHexChat() == false)
 		rpl_motd(server.getClient(clientSocket));
-=======
-}
-
-void oper(Server &server, int clientSocket, Message message)
-{
-	(void)server;
-	(void)clientSocket;
-	(void)message;
->>>>>>> origin/Martin
 }
 
 bool isOperator(Server &server, int clientSocket, const std::string &channel_name)
