@@ -308,24 +308,6 @@ void Server::addUser(int socketfd, Client client)
 	this->users.insert(std::pair<int, Client>(socketfd, client));
 }
 
-void Server::removeUser(int socketfd, std::vector<pollfd> &fds)
-{
-	std::map<int, Client>::iterator it = this->users.find(socketfd);
-	if (it != this->users.end())
-	{
-		std::cout << "Client " << it->second.getNickname() << " disconnected" << std::endl;
-		this->users.erase(it);
-		for (size_t i = 0; i < fds.size(); i++)
-		{
-			if (fds[i].fd == socketfd)
-			{
-				fds.erase(fds.begin() + i);
-				close(socketfd);
-				break;
-			}
-		}
-	}
-}
 
 int server(char *port, char *password)
 {	
