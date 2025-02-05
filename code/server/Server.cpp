@@ -322,7 +322,7 @@ void Server::removeUser(int socketfd, std::vector<pollfd> &fds)
 	}
 	user.disconnect();
 	this->users.erase(socketfd);
-	close(socketfd);
+	close (socketfd);
 	this->removeEmptyChannels();
 }
 
@@ -337,6 +337,7 @@ void Server::removeEmptyChannels()
 			++it;
 	}
 }
+
 
 int server(char *port, char *password)
 {	
@@ -400,6 +401,14 @@ int server(char *port, char *password)
 				std::cout << "Client disconnected" << std::endl;
 				server.removeUser(fds[i].fd, fds);
 			}
+		}
+	}
+	for (size_t i = fds.size() - 1 ; i > 0; i--)
+	{
+		if (fds[i].fd != server.getSocketfd())
+		{
+			server.removeUser(fds[i].fd, fds);
+			std::cout << i << std::endl;
 		}
 	}
 	close(server.getSocketfd());

@@ -49,7 +49,8 @@ void nick(Server &server, int clientSocket, Message message)
 		server.broadcast(":" + server.getClient(clientSocket).getNickname() + " NICK " + nickname + "\r\n");
 	}
 	server.getClient(clientSocket).setNickname(nickname);
-
+	if (server.getClient(clientSocket).isNamed())
+		rpl_welcome(server.getClient(clientSocket));
 }
 
 bool is_valid_username(const std::string &username)
@@ -86,7 +87,8 @@ void user(Server &server, int clientSocket, Message message)
 		return;
 	}
 	server.getClient(clientSocket).setUsername(username);
-	rpl_welcome(server.getClient(clientSocket));
+	if (server.getClient(clientSocket).isNamed())
+		rpl_welcome(server.getClient(clientSocket));
 	if (server.getClient(clientSocket).getHexChat() == false)
 		rpl_motd(server.getClient(clientSocket));
 }
@@ -367,9 +369,10 @@ void join(Server &server, int clientSocket, Message message)
 void topic(Server &server, int clientSocket, Message message)
 {
 	// protect +t
+	Client &client = server.getClient(clientSocket);
 	if (message.getParameters().size() < 1)
 	{
-		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
+		client.sendReply("461", ERR_WRONGPARAMCOUNT);
 		return;
 	}
 	Channel *channel = server.getChannel(message.getParameters()[0]);
@@ -380,20 +383,30 @@ void topic(Server &server, int clientSocket, Message message)
 	}
 	if (message.getParameters().size() == 1 && message.getText().empty())
 	{
-		rpl_topic(server.getClient(clientSocket), *channel);
+		rpl_topic(client, *channel);
 	}
 	else if (!message.getText().empty())
 	{
+		if (channel->isMode('t') && !channel->isOp(client))
+		{
+			client.sendReply("482", ERR_CHANOPRIVSNEEDED);
+			return;
+		}
 		channel->setTopic(message.getText());
-		channel->broadcast(server.getClient(clientSocket), " TOPIC " + channel->getName() + " :" + channel->getTopic());
+		channel->broadcast(client, " TOPIC " + channel->getName() + " :" + channel->getTopic());
 	}
 	else if (message.getParameters().size() == 2)
 	{
+		if (channel->isMode('t') && !channel->isOp(client))
+		{
+			client.sendReply("482", ERR_CHANOPRIVSNEEDED);
+			return;
+		}
 		channel->setTopic(message.getParameters()[1]);
-		channel->broadcast(server.getClient(clientSocket), " TOPIC " + channel->getName() + " :" + channel->getTopic());
+		channel->broadcast(client, " TOPIC " + channel->getName() + " :" + channel->getTopic());
 	}
 	else
-		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
+		client.sendReply("461", ERR_WRONGPARAMCOUNT);
 }
 
 void kick(Server &server, int clientSocket, Message message)
@@ -562,6 +575,7 @@ void parseCommand(Server &server, int clientSocket, Message message)
 		catch (const std::exception &e)
 		{
 			std::cout << "Error: " << e.what() << std::endl;
+			server.removeUser(clientSocket, server.getFds());
 			break;
 		}
 		i++;

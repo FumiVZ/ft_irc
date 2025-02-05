@@ -8,9 +8,7 @@ Channel::Channel(std::string name, Client &owner) : name(name), topic("No topic 
 	this->password = "";
 	this->limit = 0;
 }
-Channel::~Channel()
-{
-}
+Channel::~Channel() {}
 
 std::string Channel::getName() { return this->name; };
 std::vector<Client> &Channel::getClients() { return this->clients; };
@@ -102,6 +100,15 @@ void Channel::setTopic(std::string topic) { this->topic = topic; }
 
 void Channel::setLimit(size_t limit){ this->limit = limit; }
 size_t Channel::getLimit(){ return this->limit; }
+bool Channel::isMode(char mode)
+{
+	for (std::vector<char>::iterator it = modes.begin(); it != modes.end(); ++it)
+	{
+		if (*it == mode)
+			return true;
+	}
+	return false;
+}
 void Channel::addMode(char mode)
 {
 	this->modes.push_back(mode);
