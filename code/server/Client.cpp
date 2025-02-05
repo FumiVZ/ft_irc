@@ -9,7 +9,8 @@ Client::Client(int socketfd, std::string ip, std::string hostname) :
 	channels(),
 	buffer(""),
 	socketfd(socketfd),
-	is_auth(false)
+	is_auth(false),
+	hex_chat(false)
 {};
 Client::~Client() {};
 
@@ -36,7 +37,8 @@ std::string Client::getBuffer() { return this->buffer; }
 
 std::vector<Channel *> &Client::getChannels() { return this->channels; }
 
-
+void Client::setHexChat(bool hex_chat) { this->hex_chat = hex_chat; }
+bool Client::getHexChat() { return this->hex_chat; }
 void Client::setSocketfd(int socketfd) { this->socketfd = socketfd; }
 int Client::getSocketfd() const { return this->socketfd; }
 void Client::setAuth(bool auth) { this->is_auth = auth; }
@@ -58,3 +60,14 @@ void Client::sendReply(std::string code, std::string message)
 	this->forwardMessage(reply);
 }
 void Client::addChannel(Channel *channel) { this->channels.push_back(channel); }
+void Client::removeChannel(Channel *channel)
+{
+	for (std::vector<Channel *>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+	{
+		if (*it == channel)
+		{
+			this->channels.erase(it);
+			break;
+		}
+	}
+}

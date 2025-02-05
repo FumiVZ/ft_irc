@@ -6,7 +6,6 @@ Channel::Channel(std::string name, Client &owner) : name(name), topic("No topic 
 	this->clients.push_back(owner);
 	this->modes.push_back('t');
 	this->password = "";
-	this->topicIsTrue = false;
 	this->limit = 0;
 	this->topic = "";
 }
@@ -29,6 +28,18 @@ void Channel::removeOp(Client &op)
 		}
 	}
 }
+
+std::string Channel::getModes()
+{
+	std::string result;
+	for (std::vector<char>::iterator it = modes.begin(); it != modes.end(); ++it)
+	{
+		result += *it;
+		result += " ";
+	}
+	return result;
+}
+
 bool Channel::isOp(Client &op)
 {
 	for (std::vector<Client>::iterator it = ops.begin(); it != ops.end(); ++it)
@@ -70,13 +81,13 @@ void Channel::broadcast(Client &c, std::string msg)
 		it->forwardMessage(":" + c.getNickname() + "!" + c.getUsername() + "@" + c.getHostname() + msg + "\r\n");
 	}
 }
+
 // MODE <channel>  <mode> <+/-> <~nickname>
 /*— t : Définir/supprimer les restrictions de la commande TOPIC pour les opé-
 rateurs de canaux
 — k : Définir/supprimer la clé du canal (mot de passe)
 — o : Donner/retirer le privilège de l’opérateur de canal
 — l : Définir/supprimer la limite d’utilisateurs pour le canal*/
-
 void Channel::addClient(Client &c)
 {
 	if (clients.size() < limit  || limit == 0)
@@ -119,12 +130,4 @@ void Channel::ChannelIsTrue(char mode)
 	}
 }
 
-void Channel::setTopicIsTrue(bool topicIsTrue)
-{
-	this->topicIsTrue = topicIsTrue;
-}
 
-bool Channel::getTopicIsTrue()
-{
-	return this->topicIsTrue;
-}
