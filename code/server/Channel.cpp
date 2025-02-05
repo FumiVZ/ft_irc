@@ -7,7 +7,6 @@ Channel::Channel(std::string name, Client &owner) : name(name), topic("No topic 
 	this->modes.push_back('t');
 	this->password = "";
 	this->limit = 0;
-	this->topic = "";
 }
 Channel::~Channel()
 {
@@ -99,7 +98,6 @@ std::string Channel::getTopic() { return this->topic; }
 
 void Channel::setPasswd(std::string passwd) { this->password = passwd; }
 std::string Channel::getPasswd() { return this->password; }
-
 void Channel::setTopic(std::string topic) { this->topic = topic; }
 
 void Channel::setLimit(size_t limit){ this->limit = limit; }
@@ -130,4 +128,9 @@ void Channel::ChannelIsTrue(char mode)
 	}
 }
 
+
+bool Channel::getTopicIsTrue()
+{
+	return this->topicIsTrue;
+}
 
