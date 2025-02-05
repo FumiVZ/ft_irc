@@ -308,7 +308,24 @@ void Server::addUser(int socketfd, Client client)
 	this->users.insert(std::pair<int, Client>(socketfd, client));
 }
 
-<<<<<<< HEAD
+void Server::removeUser(int socketfd, std::vector<pollfd> &fds)
+{
+	std::map<int, Client>::iterator it = this->users.find(socketfd);
+	if (it != this->users.end())
+	{
+		std::cout << "Client " << it->second.getNickname() << " disconnected" << std::endl;
+		this->users.erase(it);
+		for (size_t i = 0; i < fds.size(); i++)
+		{
+			if (fds[i].fd == socketfd)
+			{
+				fds.erase(fds.begin() + i);
+				break;
+			}
+		}
+	}
+}
+
 int server(char *port, char *password)
 {	
 	uint16_t port_int;
@@ -319,28 +336,6 @@ int server(char *port, char *password)
 		return 1;
 	}
 	Server server(password, port_int);
-=======
-void Server::removeUser(int socketfd, std::vector<pollfd> &fds)
-{
-	Client &user = this->users.at(socketfd);
-
-	for (size_t i = 0; i < fds.size(); i++)
-	{
-		if (fds[i].fd == socketfd)
-		{
-			fds.erase(fds.begin() + i);
-			break;
-		}
-	}
-	user.disconnect();
-	this->users.erase(socketfd);
-	close (socketfd);
-}
-
-int server()
-{
-	Server server("password");
->>>>>>> origin/Martin
 	std::vector<pollfd> fds;
 	if (serverCreation(server))
 		return 1;

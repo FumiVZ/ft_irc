@@ -133,4 +133,3 @@ bool Channel::getTopicIsTrue()
 {
 	return this->topicIsTrue;
 }
-
