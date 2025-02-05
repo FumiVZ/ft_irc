@@ -19,7 +19,7 @@ private:
 	std::string buffer;
 	int socketfd;
 	bool is_auth;
-
+	bool hex_chat;
 public:
 	Client(int socketfd, std::string ip, std::string hostname);
 	~Client();
@@ -30,6 +30,8 @@ public:
 	int getSocketfd() const;
 	void setAuth(bool auth);
 	bool getAuth();
+	void setHexChat(bool hex_chat);
+	bool getHexChat();
 	std::string getNickname();
 	void setNickname(std::string nickname);
 	std::string getUsername();
@@ -40,6 +42,7 @@ public:
 	void setAuthentified();
 	bool isNamed();
 	void addChannel(Channel *channel);
+	void removeChannel(Channel *channel);
 	std::vector<Channel *> &getChannels();
 	void setBuffer(std::string buffer);
 	std::string getBuffer();

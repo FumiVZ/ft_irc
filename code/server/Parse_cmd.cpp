@@ -20,27 +20,31 @@ void nick(Server &server, int clientSocket, Message message)
 {
 	if (message.getParameters().size() != 1)
 	{
+		std::cout << "Wrong number of parameters" << std::endl;
 		server.getClient(clientSocket).sendReply("431", ERR_NONICKNAMEGIVEN);
 		return;
 	}
 	std::string nickname = message.getParameters()[0];
 	if (nickname.empty())
 	{
+		std::cout << "Nickname is empty" << std::endl;
 		server.getClient(clientSocket).sendReply("431", ERR_NONICKNAMEGIVEN);
 		return;
 	}
 	if (!is_valid_nickname(nickname))
 	{
+		std::cout << "Nickname is invalid" << std::endl;
 		server.getClient(clientSocket).sendReply("432", ERR_ERRONEUSNICKNAME);
 		return;
 	}
 	if (server.isNicknameInUse(nickname))
 	{
+		std ::cout << "Nickname is in use" << std::endl;
 		server.getClient(clientSocket).sendReply("433", ERR_NICKNAMEINUSE);
 		return;
 	}
 	server.getClient(clientSocket).setNickname(nickname);
-	std::cout << "Client nick is: " << server.getClient(clientSocket).getNickname() << std::endl;
+
 }
 
 bool is_valid_username(const std::string &username)
@@ -77,13 +81,9 @@ void user(Server &server, int clientSocket, Message message)
 		return;
 	}
 	server.getClient(clientSocket).setUsername(username);
-}
-
-void oper(Server &server, int clientSocket, Message message)
-{
-	(void)server;
-	(void)clientSocket;
-	(void)message;
+	rpl_welcome(server.getClient(clientSocket));
+	if (server.getClient(clientSocket).getHexChat() == false)
+		rpl_motd(server.getClient(clientSocket));
 }
 
 bool isOperator(Server &server, int clientSocket, const std::string &channel_name)
@@ -100,6 +100,8 @@ bool isNumeric(const std::string &str)
 			return false;
 		}
 	}
+	if (str.length() > 3)
+		return false;
 	return true;
 }
 
@@ -111,74 +113,167 @@ rateurs de canaux
 — l : Définir/supprimer la limite d’utilisateurs pour le canal*/
 void mode(Server &server, int clientSocket, Message message)
 {
+	std::cout << message.getParameters().size() << std::endl;
+	if (message.getParameters().size() == 2)
+	{
+		Channel *channel = server.getChannel(message.getParameters()[0]);
+		if (channel == NULL)
+		{
+			err_nosuchchannel(server.getClient(clientSocket), message.getParameters()[0]);
+			return;
+		}
+		server.getClient(clientSocket).sendReply("324", "RPL_CHANNELMODEIS " + channel->getName() + " +" + channel->getModes());
+		return;
+	}
 	if (message.getParameters().size() < 3)
 	{
 		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
 		return;
 	}
 	std::string channel_name = message.getParameters()[0];
-	std::string mode = message.getParameters()[1];
-	std::string mode_op = message.getParameters()[2];
-	if (mode_op != "+" && mode_op != "-")
+	std::string mode_op = message.getParameters()[1];
+	std::string argument = message.getParameters()[2];
+	std::cout << "CHANNEL:" << channel_name << std::endl;
+	std::cout << "ARGUMENT" << argument << std::endl;
+	std::cout << "MODE OP" << mode_op << std::endl;
+	Channel *channel = server.getChannel(channel_name);
+	if (channel == NULL)
 	{
-		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
+		err_nosuchchannel(server.getClient(clientSocket), channel_name);
 		return;
 	}
-	if (mode == "o" || mode == "k" || mode == "l" || mode == "t")
+	if (mode_op != "+t" && mode_op != "-t" && mode_op != "+k" && mode_op != "-k" && mode_op != "+o" && mode_op != "-o" && mode_op != "+l" && mode_op != "-l")
+	{
+		server.getClient(clientSocket).sendReply("472", ERR_UNKNOWNMODE);
+		return;
+	}
+	if (mode_op == "+t")
 	{
 		if (!isOperator(server, clientSocket, channel_name))
 		{
 			server.getClient(clientSocket).sendReply("482", ERR_CHANOPRIVSNEEDED);
 			return;
 		}
+		channel->broadcast(server.getClient(clientSocket), "Set the mode +t for the channel" + channel->getName());
+		channel->addMode('t');
 	}
-	if (mode_op == "+")
+	else if (mode_op == "-t")
 	{
-		if (mode == "o")
+		if (!isOperator(server, clientSocket, channel_name))
 		{
-			server.getChannel(channel_name)->addOp(server.getClient(clientSocket));
+			server.getClient(clientSocket).sendReply("482", ERR_CHANOPRIVSNEEDED);
+			return;
 		}
-		else if (mode == "k")
+		channel->broadcast(server.getClient(clientSocket), "Remove the mode +t for the channel" + channel->getName());
+		channel->removeMode('t');
+	}
+	if (message.getParameters().size() < 3)
+	{
+		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
+		return;
+	}
+	else if (mode_op == "+k")
+	{
+		if (!isOperator(server, clientSocket, channel_name))
 		{
-			if (message.getParameters().size() < 4)
-			{
-				server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
-				return;
-			}
-			server.getChannel(channel_name)->setPasswd(message.getParameters()[3]);
+			server.getClient(clientSocket).sendReply("482", ERR_CHANOPRIVSNEEDED);
+			return;
 		}
-		else if (mode == "l")
+		channel->broadcast(server.getClient(clientSocket), "Set the password for the channel" + channel->getName() + " :" + argument);
+		channel->setPasswd(argument);
+	}
+	else if (mode_op == "-k")
+	{
+		if (!isOperator(server, clientSocket, channel_name))
 		{
-			if (message.getParameters().size() < 4 || !isNumeric(message.getParameters()[3])) // Vérification de l'argument de limite
-			{
-				server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
-				return;
-			}
-			server.getChannel(channel_name)->setLimit(std::atoi(message.getParameters()[3].c_str()));
+			server.getClient(clientSocket).sendReply("482", ERR_CHANOPRIVSNEEDED);
+			return;
 		}
-		else if (mode == "t")
-			server.getChannel(channel_name)->setTopicIsTrue(true);
-		else
+		channel->broadcast(server.getClient(clientSocket), "Remove the password for the channel" + channel->getName());
+		channel->setPasswd("");
+	}
+	else if (mode_op == "+o")
+	{
+		if (!isOperator(server, clientSocket, channel_name))
+		{
+			server.getClient(clientSocket).sendReply("482", ERR_CHANOPRIVSNEEDED);
+			return;
+		}
+		Client &op = server.getClient(argument);
+		if (op.getNickname().empty())
+		{
+			server.getClient(clientSocket).sendReply("401", ERR_NOSUCHNICK);
+			return;
+		}
+		channel->broadcast(server.getClient(clientSocket), "Give the operator privilege to " + op.getNickname());
+		channel->addOp(op);
+	}
+	else if (mode_op == "-o")
+	{
+		if (!isOperator(server, clientSocket, channel_name))
+		{
+			server.getClient(clientSocket).sendReply("482", ERR_CHANOPRIVSNEEDED);
+			return;
+		}
+		Client &op = server.getClient(argument);
+		if (op.getNickname().empty())
+		{
+			server.getClient(clientSocket).sendReply("401", ERR_NOSUCHNICK);
+			return;
+		}
+		channel->broadcast(server.getClient(clientSocket), "Remove the operator privilege to " + op.getNickname());
+		channel->removeOp(op);
+	}
+	else if (mode_op == "+l")
+	{
+		if (!isOperator(server, clientSocket, channel_name))
+		{
+			server.getClient(clientSocket).sendReply("482", ERR_CHANOPRIVSNEEDED);
+			return;
+		}
+		if (!isNumeric(argument))
 		{
 			server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
 			return;
 		}
+		int limit;
+		std::istringstream(argument) >> limit;
+		if (limit <= 0 )
+		{
+			server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
+			return;
+		}
+		channel->broadcast(server.getClient(clientSocket), "Set the limit of users for the channel" + channel->getName() + " :" + argument);
+		channel->setLimit(limit);
 	}
-	else if (mode_op == "-")
+	else if (mode_op == "-l")
 	{
-		if (mode == "o")
-			server.getChannel(channel_name)->removeOp(server.getClient(clientSocket));
-		else if (mode == "k")
-			server.getChannel(channel_name)->setPasswd("");
-		else if (mode == "l")
-			server.getChannel(channel_name)->setLimit(0);
-		else if (mode == "t")
-			server.getChannel(channel_name)->setTopicIsTrue(false);
+		if (!isOperator(server, clientSocket, channel_name))
+		{
+			server.getClient(clientSocket).sendReply("482", ERR_CHANOPRIVSNEEDED);
+			return;
+		}
+		channel->broadcast(server.getClient(clientSocket), "Remove the limit of users for the channel" + channel->getName());
+		channel->setLimit(0);
 	}
-	else
+	else if (mode_op == "-i")
 	{
-		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
-		return;
+		if (!isOperator(server, clientSocket, channel_name))
+		{
+			server.getClient(clientSocket).sendReply("482", ERR_CHANOPRIVSNEEDED);
+			return;
+		}
+		channel->broadcast(server.getClient(clientSocket), "Remove the invite only mode for the channel" + channel->getName());
+		channel->removeMode('i');
+	}
+	else if (mode_op == "+i")
+	{
+		if (!isOperator(server, clientSocket, channel_name))
+		{
+			server.getClient(clientSocket).sendReply("482", ERR_CHANOPRIVSNEEDED);
+			return;
+		}
+		channel->broadcast(server.getClient(clientSocket), "Set the invite only mode for the channel" + channel->getName());
 	}
 }
 
@@ -217,6 +312,11 @@ void join(Server &server, int clientSocket, Message message)
 		err_nosuchchannel(server.getClient(clientSocket), message.getParameters()[0]);
 		return;
 	}
+	if (message.getParameters()[0][0]  != '#')
+	{
+		err_nosuchchannel(server.getClient(clientSocket), message.getParameters()[0]);
+		return;
+	}
 	Channel *channel = server.getChannel(message.getParameters()[0]);
 	Client &client = server.getClient(clientSocket);
 	if (channel != NULL)
@@ -233,13 +333,18 @@ void join(Server &server, int clientSocket, Message message)
 			server.getClient(clientSocket).sendReply("471", ERR_CHANNELISFULL);
 			return;
 		}
+		if (channel->getModes().find('i') && channel->isClient(client))
+		{
+			server.getClient(clientSocket).sendReply("473", ERR_INVITEONLYCHAN);
+			return;
+		}
 		channel->addClient(client);
 		if (!channel->isClient(client))
 			return;
 		client.addChannel(channel);
-		channel->broadcast(client, " JOIN " + channel->getName());
 		client.forwardMessage(":" + client.getNickname() + "!" + client.getUsername() + "@" + client.getHostname() 
 								+ " JOIN " + channel->getName() + "\r\n");
+		channel->broadcast(client, " JOIN " + channel->getName());
 		rpl_topic(client, *channel);
 		rpl_namreply(client, *channel);
 		rpl_endofnames(client);
@@ -248,19 +353,12 @@ void join(Server &server, int clientSocket, Message message)
 	Channel *new_channel = new Channel(message.getParameters()[0], client);
 	server.addChannel(*new_channel);
 	client.addChannel(new_channel);
-	new_channel->broadcast(client, " JOIN " + new_channel->getName());
 	client.forwardMessage(":" + client.getNickname() + "!" + client.getUsername() + "@" + client.getHostname() 
 								+ " JOIN " + new_channel->getName() + "\r\n");
+	new_channel->broadcast(client, " JOIN " + new_channel->getName());
 	rpl_topic(client, *new_channel);
 	rpl_namreply(client, *new_channel);
 	rpl_endofnames(client);
-}
-
-void part(Server &server, int clientSocket, Message message)
-{
-	(void)server;
-	(void)clientSocket;
-	(void)message;
 }
 
 void topic(Server &server, int clientSocket, Message message)
@@ -337,11 +435,45 @@ void kick(Server &server, int clientSocket, Message message)
 		return;
 	}
 	channel->broadcast(requester, " KICK " + channel->getName() + " " + target.getNickname() + " :" + reason);
+	channel->removeClient(target);
+	target.removeChannel(channel);
+}
+
+void invite(Server &server, int clientSocket, Message message)
+{
+	std::cout << "INVITE : " << message.getParameters().size() << std::endl;
+	if (message.getParameters().size() != 2)
+	{
+		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
+		return;
+	}
+	std::string nickname = message.getParameters()[0];
+	std::string channel_name = message.getParameters()[1];
+	Channel *channel = server.getChannel(channel_name);
+	if (channel == NULL)
+	{
+		server.getClient(clientSocket).sendReply("403", ERR_NOSUCHCHANNEL);
+		return;
+	}
+	Client &requester = server.getClient(clientSocket);
+	Client &target = server.getClient(nickname);
+	if (!channel->isOp(requester) && !channel->isClient(requester))
+	{
+		server.getClient(clientSocket).sendReply("442", ERR_NOTONCHANNEL);
+		return;
+	}
+	if (!server.isNicknameInUse(nickname))
+	{
+		server.getClient(clientSocket).sendReply("401", ERR_NOSUCHNICK);
+		return;
+	}
+	channel->addClient(target);
+	target.addChannel(channel);
+	rpl_invite(requester, target, channel);
 }
 
 void privmsg(Server &server, int clientSocket, Message message)
 {
-	std::cout << "PRIVMSG" << std::endl;
 	std::string target = message.getParameters()[0];
 	std::string text = message.getText();
 	if (target.empty())
@@ -385,53 +517,30 @@ void privmsg(Server &server, int clientSocket, Message message)
 	}
 }
 
-void notice(Server &server, int clientSocket, Message message)
-{
-	(void)server;
-	(void)clientSocket;
-	(void)message;
-	std::cout << "clientSocket: " << clientSocket << std::endl;
-	std::cout << "NICK: " << server.getClient(clientSocket).getNickname() << std::endl;
-	std::cout << "USER: " << server.getClient(clientSocket).getUsername() << std::endl;
-}
-
-void sendfile(Server &server, int clientSocket, Message message)
-{
-	(void)server;
-	(void)clientSocket;
-	(void)message;
-}
-
 void parseCommand(Server &server, int clientSocket, Message message)
 {
 	size_t i = 0;
 	const char *commands[] = {
 		"NICK", // done
 		"USER", // done
-		"OPER",
 		"MODE", // done need to tests
 		"QUIT", // done
 		"JOIN", // done need to tests
-		"PART",
 		"TOPIC",   // done need to tests
 		"KICK",	   // done
 		"PRIVMSG", // done
-		"NOTICE",
-		"SENDFILE",
+		"INVITE" // done
 	};
 	void (*functions[])(Server &, int, Message) = {
 		&nick,
 		&user,
-		&oper,
 		&mode,
 		&quit,
 		&join,
-		&part,
 		&topic,
 		&kick,
 		&privmsg,
-		&notice,
-		&sendfile,
+		&invite
 	};
 	size_t num_commands = sizeof(commands) / sizeof(commands[0]);
 	if (server.getClient(clientSocket).getNickname().empty() && message.getCommand() != "NICK")
@@ -444,7 +553,6 @@ void parseCommand(Server &server, int clientSocket, Message message)
 		server.getClient(clientSocket).sendReply("451", ERR_USERNAMEUNSET);
 		return;
 	}
-
 	while (i < num_commands)
 	{
 		try

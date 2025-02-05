@@ -14,7 +14,6 @@ private:
 	std::vector<Client> clients;
 	std::string password;
 	std::string topic;
-	bool topicIsTrue;
 	std::vector<char> modes;
 	size_t limit;
 public:
@@ -32,12 +31,11 @@ public:
 	bool isClient(Client &c);
 	void setPasswd(std::string passwd);
 	void setTopic(std::string topic);
-	void setTopicIsTrue(bool topicIsTrue);
-	bool getTopicIsTrue();
 	void setLimit(size_t limit);
 	size_t getLimit();
 	void addMode(char mode);
 	void removeMode(char mode);
+	std::string getModes();
 	void ChannelIsTrue(char mode);
 	std::string getPasswd();
 	~Channel();

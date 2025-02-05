@@ -2,6 +2,7 @@
 #define SERVER_HPP
 #define PORT 6667
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -29,6 +30,8 @@ extern "C" {
 #include <cstring>
 #include <errno.h>
 #include <string>
+#include <iostream>
+#include <sstream>
 
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -44,7 +47,7 @@ class Server
 		int socketfd;
 		sockaddr_in serverAddress;
 	public:
-		Server(const std::string& password = "");
+		Server(const std::string& password, const uint16_t port);
 		~Server();
 		struct sockaddr_in &getServerAddress();
 		void setServerAddress(struct sockaddr_in serverAddress);
@@ -63,7 +66,7 @@ class Server
 		std::vector<pollfd> getFds();
 };
 
-int server();
+int server(char *port, char *password);
 void	parseCommand(Server &server, int clientSocket, Message message);
 std::string get_ip(struct in_addr *in);
 std::string get_hostname(struct sockaddr_in &clientAddr);

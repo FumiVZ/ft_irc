@@ -3,10 +3,20 @@
 #include <errno.h>
 #include <vector>
 #include <sstream>
+#include <signal.h>
 
 #define DEBUG 0
 
 static sockaddr_in g_serverAddr;
+
+static int g_signal = 1;
+
+void sigint_handler(int signum)
+{
+	if (signum == SIGINT)
+		g_signal = 0;
+}
+
 
 std::string get_ip(struct in_addr *in)
 {
@@ -72,13 +82,13 @@ Client &Server::getClient(const std::string &nickname)
 	throw std::runtime_error("No client with nickname " + nickname);
 }
 
-Server::Server(const std::string &password)
+Server::Server(const std::string &password, const uint16_t port)
 {
 	this->passwd = password;
 	this->socketfd = 0;
 	this->serverAddress.sin_family = AF_INET;
 	this->serverAddress.sin_addr.s_addr = INADDR_ANY;
-	this->serverAddress.sin_port = htons(PORT);
+	this->serverAddress.sin_port = htons(port);
 	g_serverAddr = this->serverAddress;
 }
 
@@ -136,33 +146,34 @@ struct sockaddr_in acceptClient(Server &server, std::vector<pollfd> &fds)
 	return clientAddr;
 }
 
-void serverCreation(Server &server)
+bool serverCreation(Server &server)
 {
 	server.setSocketfd(socket(AF_INET, SOCK_STREAM, 0));
 	if (server.getSocketfd() < 0)
 	{
 		std::cerr << "Error socket: " << strerror(errno) << std::endl;
-		return;
+		return 1;
 	}
 	int opt = 1;
 	if (setsockopt(server.getSocketfd(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 	{
 		std::cerr << "Error setsockopt: " << strerror(errno) << std::endl;
 		close(server.getSocketfd());
-		return;
+		return 1;
 	}
 	if (bind(server.getSocketfd(), (struct sockaddr *)&server.getServerAddress(), sizeof(server.getServerAddress())) < 0)
 	{
-		std::cerr << "Error de bind: " << strerror(errno) << std::endl;
+		std::cerr << "Bind error: " << strerror(errno) << std::endl;
 		close(server.getSocketfd());
-		return;
+		return 1;
 	}
 	if (listen(server.getSocketfd(), 5) < 0)
 	{
 		std::cerr << "Error listen: " << strerror(errno) << std::endl;
 		close(server.getSocketfd());
-		return;
+		return 1;
 	}
+	return 0;
 }
 
 bool pass(Server &server, int clientSocket, const char *password)
@@ -247,6 +258,8 @@ void receiveMessage(Server &server, int clientSocket)
 			}
 			try
 			{
+				if (new_mess.getCommand() == "CAP" && new_mess.getParameters()[0] == "LS")
+					server.getClient(clientSocket).setHexChat(true);
 				if (!server.isClientAuthenticated(clientSocket))
 				{
 					if (new_mess.getCommand() == "PASS")
@@ -255,9 +268,7 @@ void receiveMessage(Server &server, int clientSocket)
 						server.getClient(clientSocket).sendReply("451", ERR_NOTREGISTERED);
 				}
 				else
-				{
 					parseCommand(server, clientSocket, new_mess);
-				}
 			}
 			catch (const std::invalid_argument &e)
 			{
@@ -298,17 +309,26 @@ void Server::addUser(int socketfd, Client client)
 	this->users.insert(std::pair<int, Client>(socketfd, client));
 }
 
-int server()
-{
-	Server server("password");
+int server(char *port, char *password)
+{	
+	uint16_t port_int;
+	std::istringstream(port) >> port_int;
+	if (port_int <= 0 || port_int > 65535)
+	{
+		std::cerr << "Port must be greater than 0 or inferior to 65535" << std::endl;
+		return 1;
+	}
+	Server server(password, port_int);
 	std::vector<pollfd> fds;
-	serverCreation(server);
+	if (serverCreation(server))
+		return 1;
 	pollfd serverPoll;
 	serverPoll.fd = server.getSocketfd();
 	serverPoll.events = POLLIN;
 	fds.push_back(serverPoll);
-	std::cout << "Server start on PORT: " << PORT << std::endl;
-	while (true)
+	std::cout << "Server start on PORT: " << port << std::endl;
+	signal(SIGINT, &sigint_handler);
+	while (g_signal)
 	{
 		int poll_result = poll(&fds[0], fds.size(), -1);
 		if (poll_result < 0)
@@ -353,6 +373,7 @@ int server()
 			}
 		}
 	}
+	close(server.getSocketfd());
 	return 0;
 }
 

@@ -34,6 +34,8 @@ SERVER_SRCS = $(addprefix $(SERVER_DIR), \
 						rpl_namreply.cpp \
 						rpl_endofnames.cpp \
 						rpl_topic.cpp \
+						rpl_invite.cpp \
+						rpl_motd.cpp \
 						) \
 					$(addprefix parsing/, \
 						Message.cpp \
