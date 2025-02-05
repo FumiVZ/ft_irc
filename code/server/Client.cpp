@@ -1,6 +1,7 @@
 #include <Server.hpp>
 #include <Client.hpp>
 
+std::runtime_error Client::disconnected = std::runtime_error("Client disconnected");
 Client::Client(int socketfd, std::string ip, std::string hostname) : 
 	nickname(""),
 	username(""),
@@ -68,6 +69,32 @@ void Client::removeChannel(Channel *channel)
 		{
 			this->channels.erase(it);
 			break;
+		}
+	}
+}
+void Client::disconnect()
+{
+	std::vector<Client * > to_notify;
+	std::vector<Client * > notified;
+
+	for (std::vector<Channel *>::iterator it = this->channels.begin(); it != this->channels.end(); it++)
+	{
+		std::vector<Client> &clients = (*it)->getClients();
+		for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); it++)
+		{
+			if (&(*it) != this)
+				to_notify.push_back(&(*it));
+		}
+		(*it)->removeClient(*this);
+		(*it)->removeOp(*this);
+	}
+	for (std::vector<Client *>::iterator it = to_notify.begin(); it != to_notify.end(); it++)
+	{
+		if (std::find(notified.begin(), notified.end(), *it) == notified.end())
+		{
+			(*it)->forwardMessage(":" + this->getNickname() + "!" + this->getUsername() + "@" + this->getHostname() 
+									+ " QUIT :Leaving\r\n");
+			notified.push_back(*it);
 		}
 	}
 }

@@ -43,6 +43,10 @@ void nick(Server &server, int clientSocket, Message message)
 		server.getClient(clientSocket).sendReply("433", ERR_NICKNAMEINUSE);
 		return;
 	}
+	if (!server.getClient(clientSocket).getNickname().empty())
+	{
+		server.broadcast(":" + server.getClient(clientSocket).getNickname() + " NICK " + nickname + "\r\n");
+	}
 	server.getClient(clientSocket).setNickname(nickname);
 
 }
@@ -82,8 +86,18 @@ void user(Server &server, int clientSocket, Message message)
 	}
 	server.getClient(clientSocket).setUsername(username);
 	rpl_welcome(server.getClient(clientSocket));
+<<<<<<< HEAD
 	if (server.getClient(clientSocket).getHexChat() == false)
 		rpl_motd(server.getClient(clientSocket));
+=======
+}
+
+void oper(Server &server, int clientSocket, Message message)
+{
+	(void)server;
+	(void)clientSocket;
+	(void)message;
+>>>>>>> origin/Martin
 }
 
 bool isOperator(Server &server, int clientSocket, const std::string &channel_name)
@@ -285,8 +299,7 @@ void quit(Server &server, int clientSocket, Message message)
 		return;
 	}
 	server.getClient(clientSocket).setAuth(false);
-	close(clientSocket);
-	std::cout << "Client disconnected" << std::endl;
+	throw server.getClient(clientSocket).disconnected;
 }
 
 bool is_valid_channel_name(const std::string &name)
@@ -363,6 +376,7 @@ void join(Server &server, int clientSocket, Message message)
 
 void topic(Server &server, int clientSocket, Message message)
 {
+	// protect +t
 	if (message.getParameters().size() < 1)
 	{
 		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
@@ -543,16 +557,8 @@ void parseCommand(Server &server, int clientSocket, Message message)
 		&invite
 	};
 	size_t num_commands = sizeof(commands) / sizeof(commands[0]);
-	if (server.getClient(clientSocket).getNickname().empty() && message.getCommand() != "NICK")
-	{
-		server.getClient(clientSocket).sendReply("451", ERR_NICKNAMEUNSET);
-		return;
-	}
-	if (server.getClient(clientSocket).getUsername().empty() && message.getCommand() != "USER" && message.getCommand() != "NICK")
-	{
-		server.getClient(clientSocket).sendReply("451", ERR_USERNAMEUNSET);
-		return;
-	}
+	if (server.getClient(clientSocket).getNickname().empty() || server.getClient(clientSocket).getUsername().empty())
+		num_commands = 2;
 	while (i < num_commands)
 	{
 		try
