@@ -38,9 +38,10 @@ public:
 	size_t getLimit();
 	void addMode(char mode);
 	void removeMode(char mode);
+	std::vector<char> getModes();
+	bool isMode(char mode);
 	void ChannelIsTrue(char mode);
 	std::string getPasswd();
-	void disconnect(Client &c);
 	~Channel();
 };
 
