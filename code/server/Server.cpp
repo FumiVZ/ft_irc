@@ -310,12 +310,15 @@ void Server::addUser(int socketfd, Client client)
 
 void Server::removeUser(int socketfd, std::vector<pollfd> &fds)
 {
+	if (this->users.find(socketfd) == this->users.end())
+		return;
 	Client &user = this->users.at(socketfd);
 
 	for (size_t i = 0; i < fds.size(); i++)
 	{
 		if (fds[i].fd == socketfd)
 		{
+			fds[i].fd = -1;
 			fds.erase(fds.begin() + i);
 			break;
 		}
@@ -403,14 +406,9 @@ int server(char *port, char *password)
 			}
 		}
 	}
-	for (size_t i = fds.size() - 1 ; i > 0; i--)
-	{
-		if (fds[i].fd != server.getSocketfd())
-		{
+	for (size_t i = 0; i < fds.size(); i++)
+		if (fds[i].fd && fds[i].fd != server.getSocketfd())
 			server.removeUser(fds[i].fd, fds);
-			std::cout << i << std::endl;
-		}
-	}
 	close(server.getSocketfd());
 	return 0;
 }

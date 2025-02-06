@@ -20,27 +20,22 @@ void nick(Server &server, int clientSocket, Message message)
 {
 	if (message.getParameters().size() != 1)
 	{
-		std::cout << "Wrong number of parameters" << std::endl;
 		server.getClient(clientSocket).sendReply("431", ERR_NONICKNAMEGIVEN);
 		return;
 	}
 	std::string nickname = message.getParameters()[0];
-	std::cout << "Nickname: " << nickname << std::endl;
 	if (nickname.empty())
 	{
-		std::cout << "Nickname is empty" << std::endl;
 		server.getClient(clientSocket).sendReply("431", ERR_NONICKNAMEGIVEN);
 		return;
 	}
 	if (!is_valid_nickname(nickname))
 	{
-		std::cout << "Nickname is invalid" << std::endl;
 		server.getClient(clientSocket).sendReply("432", ERR_ERRONEUSNICKNAME);
 		return;
 	}
 	if (server.isNicknameInUse(nickname))
 	{
-		std ::cout << "Nickname is in use" << std::endl;
 		server.getClient(clientSocket).sendReply("433", ERR_NICKNAMEINUSE);
 		return;
 	}
@@ -122,7 +117,6 @@ rateurs de canaux
 */
 void mode(Server &server, int clientSocket, Message message)
 {
-	std::cout << message.getParameters().size() << std::endl;
 	if (message.getParameters().size() == 2)
 	{
 		Channel *channel = server.getChannel(message.getParameters()[0]);
@@ -148,7 +142,7 @@ void mode(Server &server, int clientSocket, Message message)
 		server.getClient(clientSocket).sendReply("403", ERR_NOSUCHCHANNEL);
 		return;
 	}
-	if (mode_op != "+t" && mode_op != "-t" && mode_op != "+k" && mode_op != "-k" && mode_op != "+o" && mode_op != "-o" && mode_op != "+l" && mode_op != "-l")
+	if (mode_op != "+i" && mode_op != "-i" && mode_op != "+t" && mode_op != "-t" && mode_op != "+k" && mode_op != "-k" && mode_op != "+o" && mode_op != "-o" && mode_op != "+l" && mode_op != "-l")
 	{
 		server.getClient(clientSocket).sendReply("472", ERR_UNKNOWNMODE);
 		return;
@@ -249,7 +243,7 @@ void mode(Server &server, int clientSocket, Message message)
 			server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
 			return;
 		}
-		channel->broadcast(server.getClient(clientSocket), "Set the limit of users for the channel" + channel->getName() + " :" + argument);
+		channel->broadcast(server.getClient(clientSocket), "Set the limit of users 	for the channel" + channel->getName() + " :" + argument);
 		channel->setLimit(limit);
 	}
 	else if (mode_op == "-l")
@@ -279,6 +273,7 @@ void mode(Server &server, int clientSocket, Message message)
 			server.getClient(clientSocket).sendReply("482", ERR_CHANOPRIVSNEEDED);
 			return;
 		}
+		channel->addMode('i');
 		channel->broadcast(server.getClient(clientSocket), "Set the invite only mode for the channel" + channel->getName());
 	}
 }
@@ -338,14 +333,15 @@ void join(Server &server, int clientSocket, Message message)
 			server.getClient(clientSocket).sendReply("471", ERR_CHANNELISFULL);
 			return;
 		}
-		if (channel->getModes().find('i') && channel->isClient(client))
+		if (channel->isMode('i') && std::find(client.getChannels().begin(), client.getChannels().end(), channel) != client.getChannels().end())
 		{
 			server.getClient(clientSocket).sendReply("473", ERR_INVITEONLYCHAN);
 			return;
 		}
-		channel->addClient(client);
 		if (!channel->isClient(client))
-			return;
+			channel->addClient(client);
+		if (!channel->isClient(client))
+			return;	
 		client.addChannel(channel);
 		client.forwardMessage(":" + client.getNickname() + "!" + client.getUsername() + "@" + client.getHostname() 
 								+ " JOIN " + channel->getName() + "\r\n");
@@ -458,7 +454,6 @@ void kick(Server &server, int clientSocket, Message message)
 
 void invite(Server &server, int clientSocket, Message message)
 {
-	std::cout << "INVITE : " << message.getParameters().size() << std::endl;
 	if (message.getParameters().size() != 2)
 	{
 		server.getClient(clientSocket).sendReply("461", ERR_WRONGPARAMCOUNT);
@@ -484,7 +479,6 @@ void invite(Server &server, int clientSocket, Message message)
 		server.getClient(clientSocket).sendReply("401", ERR_NOSUCHNICK);
 		return;
 	}
-	channel->addClient(target);
 	target.addChannel(channel);
 	rpl_invite(requester, target, channel);
 }
@@ -521,15 +515,12 @@ void privmsg(Server &server, int clientSocket, Message message)
 	}
 	else
 	{
-		std::cout << "Private message" << std::endl;
 		Client &targetClient = server.getClient(target);
 		if (targetClient.getNickname().empty())
 		{
 			server.getClient(clientSocket).sendReply("401", ERR_NOSUCHNICK);
 			return;
 		}
-		std::cout << "Sending message to: " << targetClient.getNickname() << std::endl;
-		std::cout << "Message: " << text << std::endl;
 		targetClient.sendReply("PRIVMSG", text);
 	}
 }
@@ -546,7 +537,7 @@ void parseCommand(Server &server, int clientSocket, Message message)
 		"TOPIC",   // done need to tests
 		"KICK",	   // done
 		"PRIVMSG", // done
-		"INVITE" // done
+		"INVITE" // done need to tests
 	};
 	void (*functions[])(Server &, int, Message) = {
 		&nick,
