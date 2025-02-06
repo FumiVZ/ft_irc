@@ -565,7 +565,6 @@ void parseCommand(Server &server, int clientSocket, Message message)
 		}
 		catch (const std::exception &e)
 		{
-			std::cout << "Error: " << e.what() << std::endl;
 			server.removeUser(clientSocket, server.getFds());
 			break;
 		}
