@@ -41,7 +41,7 @@ class Server
 {
 	private:
 		std::map<int, Client> users;
-		std::map<std::string, Channel> channels;
+		std::map<std::string, Channel&> channels;
 		std::vector<pollfd> fds;
 		std::string passwd;
 		int socketfd;

@@ -364,7 +364,6 @@ void join(Server &server, int clientSocket, Message message)
 
 void topic(Server &server, int clientSocket, Message message)
 {
-	// protect +t
 	Client &client = server.getClient(clientSocket);
 	if (message.getParameters().size() < 1)
 	{

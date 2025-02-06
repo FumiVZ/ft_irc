@@ -80,10 +80,10 @@ void Client::disconnect()
 	for (std::vector<Channel *>::iterator it = this->channels.begin(); it != this->channels.end(); it++)
 	{
 		std::vector<Client> &clients = (*it)->getClients();
-		for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); it++)
+		for (std::vector<Client>::iterator client_it = clients.begin(); client_it != clients.end(); client_it++)
 		{
-			if (&(*it) != this)
-				to_notify.push_back(&(*it));
+			if (&(*client_it) != this)
+				to_notify.push_back(&(*client_it));
 		}
 		(*it)->removeClient(*this);
 		(*it)->removeOp(*this);

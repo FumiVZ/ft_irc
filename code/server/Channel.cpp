@@ -8,7 +8,9 @@ Channel::Channel(std::string name, Client &owner) : name(name), topic("No topic 
 	this->password = "";
 	this->limit = 0;
 }
-Channel::~Channel() {}
+Channel::~Channel()
+{
+}
 
 std::string Channel::getName() { return this->name; };
 std::vector<Client> &Channel::getClients() { return this->clients; };
@@ -96,7 +98,11 @@ std::string Channel::getTopic() { return this->topic; }
 
 void Channel::setPasswd(std::string passwd) { this->password = passwd; }
 std::string Channel::getPasswd() { return this->password; }
-void Channel::setTopic(std::string topic) { this->topic = topic; }
+void Channel::setTopic(std::string topic)
+{
+
+	this->topic = topic;
+}
 
 void Channel::setLimit(size_t limit){ this->limit = limit; }
 size_t Channel::getLimit(){ return this->limit; }

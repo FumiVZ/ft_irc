@@ -321,6 +321,7 @@ void Server::removeUser(int socketfd, std::vector<pollfd> &fds)
 			break;
 		}
 	}
+
 	user.disconnect();
 	this->users.erase(socketfd);
 	close (socketfd);
@@ -329,11 +330,14 @@ void Server::removeUser(int socketfd, std::vector<pollfd> &fds)
 
 void Server::removeEmptyChannels()
 {
-	std::map<std::string, Channel>::iterator it = this->channels.begin();
+	std::map<std::string, Channel&>::iterator it = this->channels.begin();
 	while (it != this->channels.end())
 	{
 		if (it->second.getClients().size() == 0)
+		{
+			delete &it->second;
 			this->channels.erase(it++);
+		}
 		else
 			++it;
 	}
@@ -404,9 +408,14 @@ int server(char *port, char *password)
 			}
 		}
 	}
-	for (size_t i = 0; i < fds.size(); i++)
-		if (fds[i].fd && fds[i].fd != server.getSocketfd())
-			server.removeUser(fds[i].fd, fds);
+	for (std::vector<pollfd>::iterator it = fds.begin(); it != fds.end(); ++it)
+	{
+		if (it->fd != -1 && it->fd != server.getSocketfd())
+		{
+			server.removeUser(it->fd, fds);
+			it = fds.begin();
+		}
+	}
 	close(server.getSocketfd());
 	return 0;
 }
@@ -419,7 +428,7 @@ void Server::broadcast(std::string message)
 	}
 }
 
-void Server::addChannel(Channel &ch) { this->channels.insert(std::pair<std::string, Channel>(ch.getName(), ch)); }
+void Server::addChannel(Channel &ch) { this->channels.insert(std::pair<std::string, Channel&>(ch.getName(), ch)); }
 Channel *Server::getChannel(const std::string &name)
 {
 	Channel *ch = NULL;
