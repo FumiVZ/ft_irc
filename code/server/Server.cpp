@@ -129,7 +129,6 @@ struct sockaddr_in acceptClient(Server &server, std::vector<pollfd> &fds)
 	server.addUser(clientSocket, client);
 	if (DEBUG == 1)
 	{
-		std::cout << "debug Client" << std::endl;
 		std::string nickname = "test";
 		server.getClient(clientSocket).setAuth(true);
 		if (!(server.isNicknameInUse(nickname)))
@@ -179,7 +178,6 @@ bool pass(Server &server, int clientSocket, const char *password)
 {
 	if (strcmp(password, server.getPasswd().c_str()) == 0)
 	{
-		std::cout << "Authentification réussie" << std::endl;
 		server.getClient(clientSocket).setAuthentified();
 		send(clientSocket, "Authentification success!\r\n", 27, 0);
 		return true;

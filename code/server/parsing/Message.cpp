@@ -10,7 +10,6 @@ Message::Message(const std::string &message) : _raw_message(message)
 	}
 	if (message.length() < 2)
 	{
-		std::cout << message << std::endl;
 		throw std::invalid_argument("Message too short");
 	}
 	if (message.length() > MAX_MESSAGE_SIZE)
