@@ -320,7 +320,10 @@ void join(Server &server, int clientSocket, Message message)
 	if (channel != NULL)
 	{
 		if (channel->isClient(client))
+		{
+			std::cout << "DEBUG" << std::endl;
 			return;
+		}
 		if ((message.getParameters().size() == 1 && channel->getPasswd() != "") || (message.getParameters().size() == 2 && (channel->getPasswd() != message.getParameters()[1])))
 		{
 			server.getClient(clientSocket).sendReply("475", ERR_BADCHANNELKEY);
@@ -331,7 +334,8 @@ void join(Server &server, int clientSocket, Message message)
 			server.getClient(clientSocket).sendReply("471", ERR_CHANNELISFULL);
 			return;
 		}
-		if (channel->isMode('i') && std::find(client.getChannels().begin(), client.getChannels().end(), channel) != client.getChannels().end())
+		std::cout << "DEBUG" << std::endl;
+		if (channel->isMode('i') && std::find(client.getChannels().begin(), client.getChannels().end(), channel) == client.getChannels().end())
 		{
 			server.getClient(clientSocket).sendReply("473", ERR_INVITEONLYCHAN);
 			return;
@@ -576,4 +580,5 @@ void parseCommand(Server &server, int clientSocket, Message message)
 		}
 		i++;
 	}
+	server.getClient(clientSocket).sendReply("421", ERR_UNKNOWNCOMMAND);
 }

@@ -43,6 +43,7 @@ class Server;
 #define ERR_NOSUCHNICKNAME "No such nickname"
 #define ERR_NEEDMOREPARAM "Need more parameters"
 #define ERR_ERRONEUSNICK "Erroneus nickname"
+#define ERR_MESSAGETOOLONG "Message too long"
 void rpl_welcome(Client client);
 void rpl_endofnames(Client &c);
 void rpl_namreply(Client &c, Channel &ch);
