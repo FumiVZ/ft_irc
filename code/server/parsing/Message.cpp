@@ -61,14 +61,6 @@ void Message::parse()
 	{
 		_command = msg.substr(0, msg.length() - 2);
 	}
-	for (size_t i = 0; i < _command.length(); i++)
-	{
-		char c = _command[i];
-		if (!std::isupper(c))
-		{
-			throw std::invalid_argument("Command is not entirely uppercase");
-		}
-	}
 	if (pos == std::string::npos)
 	{
 		return;
@@ -85,11 +77,13 @@ void Message::parse()
 		pos = msg.find(' ');
 		if (pos == std::string::npos)
 		{
-			_parameters.push_back(msg.substr(0, msg.length() - 2));
+			if (!msg.substr(0, msg.length() - 2).empty())
+				_parameters.push_back(msg.substr(0, msg.length() - 2));
 			_nb_parameters++;
 			break;
 		}
-		_parameters.push_back(msg.substr(0, pos));
+		if (!msg.substr(0, pos).empty())
+			_parameters.push_back(msg.substr(0, pos));
 		msg = msg.substr(pos + 1);
 		_nb_parameters++;
 	}

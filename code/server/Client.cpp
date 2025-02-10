@@ -10,8 +10,7 @@ Client::Client(int socketfd, std::string ip, std::string hostname) :
 	channels(),
 	buffer(""),
 	socketfd(socketfd),
-	is_auth(false),
-	hex_chat(false)
+	is_auth(false)
 {};
 Client::~Client() {};
 
@@ -34,12 +33,11 @@ int client()
 }
 
 void Client::setBuffer(std::string buffer) { this->buffer = buffer; }
+void Client::addBuffer(std::string buffer) { this->buffer += buffer; }
 std::string Client::getBuffer() { return this->buffer; }
 
 std::vector<Channel *> &Client::getChannels() { return this->channels; }
 
-void Client::setHexChat(bool hex_chat) { this->hex_chat = hex_chat; }
-bool Client::getHexChat() { return this->hex_chat; }
 void Client::setSocketfd(int socketfd) { this->socketfd = socketfd; }
 int Client::getSocketfd() const { return this->socketfd; }
 void Client::setAuth(bool auth) { this->is_auth = auth; }

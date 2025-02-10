@@ -15,8 +15,8 @@ void sigint_handler(int signum)
 {
 	if (signum == SIGINT)
 		g_signal = 0;
+	std::cout << "Server stopped" << std::endl;
 }
-
 
 std::string get_ip(struct in_addr *in)
 {
@@ -176,6 +176,12 @@ bool serverCreation(Server &server)
 
 bool pass(Server &server, int clientSocket, const char *password)
 {
+	std::cout << "Password: " << password << std::endl;
+	for (int i = 0; password[i] != '\0'; i++)
+	{
+		if (password[i] != server.getPasswd()[i])
+			std::cout << "password[i]: " << static_cast<int>(password[i]) << " server.getPasswd()[i]: " << server.getPasswd()[i] << std::endl;
+	}
 	if (strcmp(password, server.getPasswd().c_str()) == 0)
 	{
 		server.getClient(clientSocket).setAuthentified();
@@ -196,10 +202,22 @@ std::string MakeVisible(std::string str)
 	std::string result;
 	for (size_t i = 0; i < str.size(); i++)
 	{
-		if (str[i] == '\r')
-			result += "\\r";
+		if (str[i] == '\0')
+			result += "EOF";
+		else if (str[i] == '\a')
+			result += "\\a";
+		else if (str[i] == '\b')
+			result += "\\b";
+		else if (str[i] == '\t')
+			result += "\\t";
 		else if (str[i] == '\n')
 			result += "\\n";
+		else if (str[i] == '\v')
+			result += "\\v";
+		else if (str[i] == '\f')
+			result += "\\f";
+		else if (str[i] == '\r')
+			result += "\\r";
 		else
 			result += str[i];
 	}
@@ -220,26 +238,28 @@ void receiveMessage(Server &server, int clientSocket)
 	if (n < 0)
 	{
 		std::cerr << "Error recv: " << strerror(errno) << std::endl;
-		close(clientSocket);
+		server.removeUser(clientSocket, server.getFds());
 		return;
 	}
 	else if (n == 0)
 	{
-		server.getClient(clientSocket).setAuth(false);
 		server.removeUser(clientSocket, server.getFds());
 		return;
 	}
 	std::string message(buffer, n);
-	if (server.getClient(clientSocket).getBuffer().size() != 0)
-	{
-		message = server.getClient(clientSocket).getBuffer() + message;
-		server.getClient(clientSocket).setBuffer("");
-	}
 	if ((message.find("\r\n") == std::string::npos))
 	{
-		server.getClient(clientSocket).setBuffer(message);
+		std::cout << "Buffering message" << std::endl;
+		server.getClient(clientSocket).addBuffer(message);
 		return;
 	}
+	else
+	{
+		message = server.getClient(clientSocket).getBuffer() + message;
+		message.erase(std::remove(message.begin(), message.end(), '\4'), message.end());
+		server.getClient(clientSocket).setBuffer("");
+	}
+	std::cout << "Received message: " << MakeVisible(message) << std::endl;
 	size_t start = 0;
 	size_t end;
 	while ((end = message.find("\r\n", start)) != std::string::npos)
@@ -253,14 +273,19 @@ void receiveMessage(Server &server, int clientSocket)
 				start = end;
 				continue;
 			}
+			std::string command = new_mess.getCommand();
+			upcase(command);
 			try
 			{
-				if (new_mess.getCommand() == "CAP" && new_mess.getParameters()[0] == "LS")
-					server.getClient(clientSocket).setHexChat(true);
 				if (!server.isClientAuthenticated(clientSocket))
 				{
-					if (new_mess.getCommand() == "PASS")
-						pass(server, clientSocket, new_mess.getParameters()[0].c_str());
+					if (command == "PASS")
+					{
+						if (new_mess.getParameters().size() == 0 || new_mess.getParameters().size() > 1)
+							server.getClient(clientSocket).sendReply("461", ERR_NEEDMOREPARAMS);
+						else
+							pass(server, clientSocket, new_mess.getParameters()[0].c_str());
+					}
 					else
 						server.getClient(clientSocket).sendReply("451", ERR_NOTREGISTERED);
 				}
@@ -311,7 +336,7 @@ void Server::removeUser(int socketfd, std::vector<pollfd> &fds)
 	if (this->users.find(socketfd) == this->users.end())
 		return;
 	Client &user = this->users.at(socketfd);
-
+	user.setAuth(false);
 	for (size_t i = 0; i < fds.size(); i++)
 	{
 		if (fds[i].fd == socketfd)
@@ -321,16 +346,15 @@ void Server::removeUser(int socketfd, std::vector<pollfd> &fds)
 			break;
 		}
 	}
-
 	user.disconnect();
 	this->users.erase(socketfd);
-	close (socketfd);
+	close(socketfd);
 	this->removeEmptyChannels();
 }
 
 void Server::removeEmptyChannels()
 {
-	std::map<std::string, Channel&>::iterator it = this->channels.begin();
+	std::map<std::string, Channel &>::iterator it = this->channels.begin();
 	while (it != this->channels.end())
 	{
 		if (it->second.getClients().size() == 0)
@@ -343,10 +367,9 @@ void Server::removeEmptyChannels()
 	}
 }
 
-
 int server(char *port, char *password)
-{	
-	uint16_t port_int;
+{
+	int port_int;
 	std::istringstream(port) >> port_int;
 	if (port_int <= 0 || port_int > 65535)
 	{
@@ -408,13 +431,10 @@ int server(char *port, char *password)
 			}
 		}
 	}
-	for (std::vector<pollfd>::iterator it = fds.begin(); it != fds.end(); ++it)
+	for (std::vector<pollfd>::reverse_iterator it = fds.rbegin(); it != fds.rend(); ++it)
 	{
-		if (it->fd != -1 && it->fd != server.getSocketfd())
-		{
+		if (it->fd != -1)
 			server.removeUser(it->fd, fds);
-			it = fds.begin();
-		}
 	}
 	close(server.getSocketfd());
 	return 0;
@@ -428,7 +448,7 @@ void Server::broadcast(std::string message)
 	}
 }
 
-void Server::addChannel(Channel &ch) { this->channels.insert(std::pair<std::string, Channel&>(ch.getName(), ch)); }
+void Server::addChannel(Channel &ch) { this->channels.insert(std::pair<std::string, Channel &>(ch.getName(), ch)); }
 Channel *Server::getChannel(const std::string &name)
 {
 	Channel *ch = NULL;
