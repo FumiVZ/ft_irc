@@ -20,7 +20,6 @@ private:
 	std::string buffer;
 	int socketfd;
 	bool is_auth;
-	bool hex_chat;
 public:
 	Client(int socketfd, std::string ip, std::string hostname);
 	~Client();
@@ -31,8 +30,6 @@ public:
 	int getSocketfd() const;
 	void setAuth(bool auth);
 	bool getAuth();
-	void setHexChat(bool hex_chat);
-	bool getHexChat();
 	std::string getNickname();
 	void setNickname(std::string nickname);
 	std::string getUsername();
@@ -46,6 +43,7 @@ public:
 	void removeChannel(Channel *channel);
 	std::vector<Channel *> &getChannels();
 	void setBuffer(std::string buffer);
+	void addBuffer(std::string buffer);
 	std::string getBuffer();
 
 	void forwardMessage(std::string message);
@@ -64,6 +62,7 @@ public:
 	void sendMsg(std::string msg, Client &c);
 	void sendReply(std::string code, std::string message);
 	static std::runtime_error disconnected;
+
 
 	void disconnect();
 };

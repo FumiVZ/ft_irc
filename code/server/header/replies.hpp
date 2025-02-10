@@ -2,6 +2,10 @@
 #define REPLIES_HPP
 
 #include <Client.hpp>
+#include <Channel.hpp>
+#include <Server.hpp>
+
+class Server;
 
 #define ERR_WRONGPARAM "Wrong usage use: ./ircserv <port> <password>"
 #define ERR_PASSWDMISMATCH "Password incorrect use PASS <password>"
@@ -44,7 +48,7 @@ void rpl_endofnames(Client &c);
 void rpl_namreply(Client &c, Channel &ch);
 void rpl_topic(Client &c, Channel &ch);
 void rpl_invite(Client &requester, Client &target, Channel *channel);
-void rpl_motd(Client &client);
+void rpl_motd(Server &server, int client_socket, Message message);
 
 void rpl_needmoreparam(Client c, std::string command);
 

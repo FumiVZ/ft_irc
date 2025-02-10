@@ -1,6 +1,5 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
-#define PORT 6667
 
 
 #ifdef __cplusplus
@@ -73,4 +72,7 @@ void	parseCommand(Server &server, int clientSocket, Message message);
 std::string get_ip(struct in_addr *in);
 std::string get_hostname(struct sockaddr_in &clientAddr);
 std::string get_g_hostname();
+std::string MakeVisible(std::string str);
+void upcase(std::string &str);
+
 #endif
