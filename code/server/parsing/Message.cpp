@@ -65,7 +65,6 @@ void Message::parse()
 	{
 		return;
 	}
-
 	_nb_parameters = 0;
 	while (!msg.empty())
 	{

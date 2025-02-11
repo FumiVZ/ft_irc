@@ -90,7 +90,7 @@ void Client::disconnect()
 	{
 		if (std::find(notified.begin(), notified.end(), *it) == notified.end())
 		{
-			(*it)->forwardMessage(":" + this->getNickname() + "!" + this->getUsername() + "@" + this->getHostname() 
+			(*it)->forwardMessage(":" + this->getNickname() + "!" + this->getUsername() + "@" + this->getHostname()
 									+ " QUIT :Leaving\r\n");
 			notified.push_back(*it);
 		}

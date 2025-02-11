@@ -120,14 +120,7 @@ struct sockaddr_in acceptClient(Server &server, std::vector<pollfd> &fds)
 	int clientSocket = accept(server.getSocketfd(), (struct sockaddr *)&clientAddr, &clientLen);
 	if (clientSocket < 0)
 		throw std::runtime_error("Acceptation error: " + std::string(strerror(errno)));
-	int flags = fcntl(clientSocket, F_GETFL, 0);
-	if (flags < 0)
-	{
-		std::cout << "Error: F_GETFL failed" << std::endl;
-		close(clientSocket);
-		throw std::runtime_error("F_GETFL failed");
-	}
-	if (fcntl(clientSocket, F_SETFL, flags | O_NONBLOCK) < 0)
+	if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) < 0)
 	{
 		std::cout << "Error: F_SETFL failed" << std::endl;
 		throw std::runtime_error("F_SETFL failed");
@@ -245,35 +238,13 @@ void clear_buffer(char *buffer)
 
 void receiveMessage(Server &server, int clientSocket)
 {
-/* 	if (clientSocket < 0)
-	{
-		std::cerr << "Invalid socket descriptor." << std::endl;
-		return;
-	}
-	int error = 0;
-	socklen_t len = sizeof(error);
-	if (getsockopt(clientSocket, SOL_SOCKET, SO_ERROR, &error, &len) < 0)
-	{
-		std::cerr << "Error getting socket options: " << strerror(errno) << std::endl;
-		server.removeUser(clientSocket, server.getFds());
-		return;
-	}
-	if (error != 0)
-	{
-		std::cerr << "Socket error: " << strerror(error) << std::endl;
-		server.removeUser(clientSocket, server.getFds());
-		return;
-	} */
 	char buffer[1024] = {0};
 	int n = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
 	if (n < 0)
 	{
 		if (errno == EAGAIN || errno == EWOULDBLOCK)
-		{
-			std::cout << "PROUT" << std::endl;
 			return;
-		}
-		std::cerr << "Error recv: " << strerror(errno) << std::endl;
+		std::cout << "Error: " << strerror(errno) << std::endl;
 		server.removeUser(clientSocket, server.getFds());
 		return;
 	}
@@ -342,6 +313,7 @@ void receiveMessage(Server &server, int clientSocket)
 		}
 		catch (const std::exception &e)
 		{
+			std::cerr << "HERE" << std::endl;
 			std::cerr << "Error: " << e.what() << std::endl;
 		}
 		start = end;
