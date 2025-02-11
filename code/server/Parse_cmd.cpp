@@ -8,6 +8,8 @@ bool is_valid_nickname(const std::string &nickname)
 		return false;
 	if (!isalpha(nickname[0]) && !strchr(SPECIAL_CHARACTERS, nickname[0]))
 		return false;
+	if (nickname[0] == ':' || nickname[0] == '#' )
+		return false;
 	for (size_t i = 1; i < nickname.size(); i++)
 	{
 		if (!strchr(valid_chars, nickname[i]))
@@ -18,6 +20,7 @@ bool is_valid_nickname(const std::string &nickname)
 
 void nick(Server &server, int clientSocket, Message message)
 {
+	std::cout << "SIZE " << message.getParameters().size() << std::endl;
 	if (message.getParameters().size() != 1)
 	{
 		server.getClient(clientSocket).sendReply("431", ERR_NONICKNAMEGIVEN);
@@ -40,11 +43,13 @@ void nick(Server &server, int clientSocket, Message message)
 		return;
 	}
 	if (!server.getClient(clientSocket).getNickname().empty())
-	{
 		server.broadcast(":" + server.getClient(clientSocket).getNickname() + " NICK " + nickname + "\r\n");
-	}
 	server.getClient(clientSocket).setNickname(nickname);
+	if (!server.getClient(clientSocket).getUsername().empty())
+	{
 		rpl_welcome(server.getClient(clientSocket));
+		rpl_motd(clientSocket);
+	}
 }
 
 bool is_valid_username(const std::string &username)
@@ -82,7 +87,10 @@ void user(Server &server, int clientSocket, Message message)
 	}
 	server.getClient(clientSocket).setUsername(username);
 	if (!server.getClient(clientSocket).getNickname().empty())
+	{
 		rpl_welcome(server.getClient(clientSocket));
+		rpl_motd(clientSocket);
+	}
 }
 
 bool isOperator(Server &server, int clientSocket, const std::string &channel_name)
@@ -315,13 +323,14 @@ void join(Server &server, int clientSocket, Message message)
 		server.getClient(clientSocket).sendReply("403", ERR_NOSUCHCHANNEL);
 		return;
 	}
-	Channel *channel = server.getChannel(message.getParameters()[0]);
+	std::string channel_name = message.getParameters()[0];
+	upcase(channel_name);
+	Channel *channel = server.getChannel(channel_name);
 	Client &client = server.getClient(clientSocket);
 	if (channel != NULL)
 	{
 		if (channel->isClient(client))
 		{
-			std::cout << "DEBUG" << std::endl;
 			return;
 		}
 		if ((message.getParameters().size() == 1 && channel->getPasswd() != "") || (message.getParameters().size() == 2 && (channel->getPasswd() != message.getParameters()[1])))
@@ -334,7 +343,6 @@ void join(Server &server, int clientSocket, Message message)
 			server.getClient(clientSocket).sendReply("471", ERR_CHANNELISFULL);
 			return;
 		}
-		std::cout << "DEBUG" << std::endl;
 		if (channel->isMode('i') && std::find(client.getChannels().begin(), client.getChannels().end(), channel) == client.getChannels().end())
 		{
 			server.getClient(clientSocket).sendReply("473", ERR_INVITEONLYCHAN);
@@ -544,7 +552,6 @@ void parseCommand(Server &server, int clientSocket, Message message)
 		"KICK",	   // done
 		"PRIVMSG", // done
 		"INVITE", // done need to tests
-		"MOTD" 
 	};
 	void (*functions[])(Server &, int, Message) = {
 		&nick,
@@ -556,7 +563,6 @@ void parseCommand(Server &server, int clientSocket, Message message)
 		&kick,
 		&privmsg,
 		&invite,
-		&rpl_motd
 	};
 	size_t num_commands = sizeof(commands) / sizeof(commands[0]);
 	if (server.getClient(clientSocket).getNickname().empty() || server.getClient(clientSocket).getUsername().empty())
@@ -576,7 +582,7 @@ void parseCommand(Server &server, int clientSocket, Message message)
 		catch (const std::exception &e)
 		{
 			server.removeUser(clientSocket, server.getFds());
-			break;
+			return;
 		}
 		i++;
 	}

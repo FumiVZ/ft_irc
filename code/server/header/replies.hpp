@@ -23,7 +23,7 @@ class Server;
 #define ERR_NICKRESERVED "Nickname reserved"
 #define ERR_NOTEXTTOSEND "No text to send"
 #define ERR_NORECIPIENT "No target given"
-#define ERR_NONICKNAMEGIVEN "No nickname given"
+#define ERR_NONICKNAMEGIVEN " :No nickname given"
 #define ERR_NOSUCHNICK "No such nick/channel"
 #define ERR_WRONGPARAMCOUNT "Wrong number of parameters"
 #define ERR_NOTREGISTERED "You have not registered"
@@ -49,7 +49,7 @@ void rpl_endofnames(Client &c);
 void rpl_namreply(Client &c, Channel &ch);
 void rpl_topic(Client &c, Channel &ch);
 void rpl_invite(Client &requester, Client &target, Channel *channel);
-void rpl_motd(Server &server, int client_socket, Message message);
+void rpl_motd(int clientSocket);
 
 void rpl_needmoreparam(Client c, std::string command);
 
