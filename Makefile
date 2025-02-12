@@ -14,6 +14,7 @@ SERVER_HEADERS = $(addprefix $(SERVER_DIR), \
 						Channel.hpp \
 						replies.hpp \
 						Message.hpp \
+						Commands.hpp \
 						) \
 					)
 
@@ -23,6 +24,18 @@ SERVER_SRCS = $(addprefix $(SERVER_DIR), \
 					Server.cpp \
 					Parse_cmd.cpp \
 					Channel.cpp \
+					$(addprefix commands/, \
+						nick.cpp \
+						user.cpp \
+						quit.cpp \
+						join.cpp \
+						privmsg.cpp \
+						topic.cpp \
+						invite.cpp \
+						kick.cpp \
+						mode.cpp \
+						pass.cpp \
+						) \
 					$(addprefix replies/, \
 						rpl_welcome.cpp \
 						rpl_namreply.cpp \
