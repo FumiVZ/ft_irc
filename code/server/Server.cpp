@@ -257,7 +257,7 @@ void receiveMessage(Server &server, int clientSocket)
 	}
 	if (n > 512)
 	{
-		client.sendReply("412", client.getNickname().empty() ? "* " : client.getUsername() + " :" + ERR_MESSAGETOOLONG);
+		client.sendReply("417", client.getNickname().empty() ? "* " : client.getUsername() + " :" + ERR_INPUTTOOLONG);
 		return;
 	}
 	std::string message(buffer, n);
@@ -296,7 +296,7 @@ void receiveMessage(Server &server, int clientSocket)
 					if (command == "PASS")
 					{
 						if (new_mess.getParameters().size() == 0 || new_mess.getParameters().size() > 1)
-							client.sendReply("461", "* " + command + " :" + ERR_NEEDMOREPARAMS);
+							client.sendReply("461", "* " + command + " PASS :" + ERR_WRONGPARAMCOUNT);
 						else
 							pass(server, clientSocket, new_mess.getParameters()[0].c_str());
 					}
