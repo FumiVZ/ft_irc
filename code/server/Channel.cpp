@@ -15,7 +15,12 @@ Channel::~Channel()
 std::string Channel::getName() { return this->name; };
 std::vector<Client> &Channel::getClients() { return this->clients; };
 std::vector<Client> &Channel::getOps() { return this->ops; };
-void Channel::addOp(Client &op) { this->ops.push_back(op); };
+void Channel::addOp(Client &op)
+{
+	if (isOp(op))
+		return;
+	this->ops.push_back(op); 
+};
 void Channel::removeOp(Client &op)
 {
 	for (std::vector<Client>::iterator it = ops.begin(); it != ops.end(); ++it)
