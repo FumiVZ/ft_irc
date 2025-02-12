@@ -182,6 +182,8 @@ bool serverCreation(Server &server)
 
 bool pass(Server &server, int clientSocket, const char *password)
 {
+	Client &client = server.getClient(clientSocket);
+
 	std::cout << "Password: " << password << std::endl;
 	for (int i = 0; password[i] != '\0'; i++)
 	{
@@ -190,11 +192,10 @@ bool pass(Server &server, int clientSocket, const char *password)
 	}
 	if (strcmp(password, server.getPasswd().c_str()) == 0)
 	{
-		server.getClient(clientSocket).setAuthentified();
-		send(clientSocket, "Authentification success!\r\n", 27, 0);
+		client.setAuthentified();
 		return true;
 	}
-	server.getClient(clientSocket).sendReply("464", ERR_PASSWDMISMATCH);
+	client.sendReply("464", client.getNickname().empty() ? "* " : client.getUsername() + " :" + ERR_PASSWDMISMATCH);
 	return false;
 }
 
@@ -238,6 +239,7 @@ void clear_buffer(char *buffer)
 
 void receiveMessage(Server &server, int clientSocket)
 {
+	Client &client = server.getClient(clientSocket);
 	char buffer[1024] = {0};
 	int n = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
 	if (n < 0)
@@ -255,21 +257,21 @@ void receiveMessage(Server &server, int clientSocket)
 	}
 	if (n > 512)
 	{
-		server.getClient(clientSocket).sendReply("412", ERR_MESSAGETOOLONG);
+		client.sendReply("412", client.getNickname().empty() ? "* " : client.getUsername() + " :" + ERR_MESSAGETOOLONG);
 		return;
 	}
 	std::string message(buffer, n);
 	if ((message.find("\r\n") == std::string::npos))
 	{
 		std::cout << "Buffering message" << std::endl;
-		server.getClient(clientSocket).addBuffer(message);
+		client.addBuffer(message);
 		return;
 	}
 	else
 	{
-		message = server.getClient(clientSocket).getBuffer() + message;
+		message = client.getBuffer() + message;
 		message.erase(std::remove(message.begin(), message.end(), '\4'), message.end());
-		server.getClient(clientSocket).setBuffer("");
+		client.setBuffer("");
 	}
 	std::cout << "Received message: " << MakeVisible(message) << std::endl;
 	size_t start = 0;
@@ -294,12 +296,12 @@ void receiveMessage(Server &server, int clientSocket)
 					if (command == "PASS")
 					{
 						if (new_mess.getParameters().size() == 0 || new_mess.getParameters().size() > 1)
-							server.getClient(clientSocket).sendReply("461", ERR_NEEDMOREPARAMS);
+							client.sendReply("461", "* " + command + " :" + ERR_NEEDMOREPARAMS);
 						else
 							pass(server, clientSocket, new_mess.getParameters()[0].c_str());
 					}
 					else
-						server.getClient(clientSocket).sendReply("451", ERR_NOTREGISTERED);
+						client.sendReply("451", client.getNickname().empty() ? "* " : client.getUsername() + " :" + ERR_NOTREGISTERED);
 				}
 				else
 					parseCommand(server, clientSocket, new_mess);
@@ -322,20 +324,22 @@ void receiveMessage(Server &server, int clientSocket)
 	}
 	if (start < message.size())
 	{
-		server.getClient(clientSocket).setBuffer(message.substr(start));
+		client.setBuffer(message.substr(start));
 	}
 	clear_buffer(buffer);
 }
 
 void auth_client(Server &server, int clientSocket, Message message)
 {
+	Client &client = server.getClient(clientSocket);
+
 	if (message.getCommand() == "PASS")
 	{
 		pass(server, clientSocket, message.getParameters()[0].c_str());
 	}
 	else
 	{
-		server.getClient(clientSocket).sendReply("451", ERR_NOTREGISTERED);
+		client.sendReply("451", client.getNickname().empty() ? "* " : client.getUsername() + " :" + ERR_NOTREGISTERED);
 	}
 }
 
