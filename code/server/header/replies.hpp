@@ -41,7 +41,6 @@ class Server;
 #define ERR_NOSUCHANNEL "No such channel"
 #define ERR_NOSUCHUSER "No such user"
 #define ERR_NOSUCHNICKNAME "No such nickname"
-#define ERR_NEEDMOREPARAM "Need more parameters"
 #define ERR_ERRONEUSNICK "Erroneus nickname"
 #define ERR_MESSAGETOOLONG "Message too long"
 void rpl_welcome(Client client);
