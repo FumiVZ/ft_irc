@@ -8,10 +8,12 @@ void topic(Server &server, int clientSocket, Message message)
 		client.sendReply("461", client.getNickname().empty() ? "* " : client.getUsername() + " TOPIC :" + ERR_WRONGPARAMCOUNT);
 		return;
 	}
-	Channel *channel = server.getChannel(message.getParameters()[0]);
+	std::string channel_name = message.getParameters()[0];
+	upcase(channel_name);
+	Channel *channel = server.getChannel(channel_name);
 	if (channel == NULL)
 	{
-		client.sendReply("403", client.getNickname().empty() ? "* " : client.getUsername() + " " + message.getParameters()[0] + " :" + ERR_NOSUCHCHANNEL);
+		client.sendReply("403", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_NOSUCHCHANNEL);
 		return;
 	}
 	if (message.getParameters().size() == 1 && message.getText().empty())

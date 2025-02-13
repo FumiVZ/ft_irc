@@ -39,7 +39,7 @@ void privmsg(Server &server, int clientSocket, Message message)
 			client.sendReply("442", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel->getName() + " :" + ERR_NOTONCHANNEL);
 			return;
 		}
-		channel->broadcast(requester, " PRIVMSG " + channel->getName() + " :" + text);
+		channel->broadcastMsg(requester, " PRIVMSG " + channel->getName() + " :" + text);
 	}
 	else
 	{

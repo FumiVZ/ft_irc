@@ -62,7 +62,7 @@ void join(Server &server, int clientSocket, Message message)
 		rpl_endofnames(client);
 		return;
 	}
-	Channel *new_channel = new Channel(message.getParameters()[0], client);
+	Channel *new_channel = new Channel(channel_name, client);
 	server.addChannel(*new_channel);
 	client.addChannel(new_channel);
 	client.forwardMessage(":" + client.getNickname() + "!" + client.getUsername() + "@" + client.getHostname() + " JOIN " + new_channel->getName() + "\r\n");

@@ -76,12 +76,20 @@ void Channel::removeClient(Client &c)
 	}
 }
 
-void Channel::broadcast(Client &c, std::string msg)
+void Channel::broadcastMsg(Client &c, std::string msg)
 {
 	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
 	{
 		if (*it == c)
 			continue;
+		it->forwardMessage(":" + c.getNickname() + "!" + c.getUsername() + "@" + c.getHostname() + msg + "\r\n");
+	}
+}
+
+void Channel::broadcast(Client &c, std::string msg)
+{
+	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+	{
 		it->forwardMessage(":" + c.getNickname() + "!" + c.getUsername() + "@" + c.getHostname() + msg + "\r\n");
 	}
 }
