@@ -70,6 +70,8 @@ void Server::setServerAddress(struct sockaddr_in serverAddress)
 
 Client &Server::getClient(int socketfd)
 {
+	if (this->users.find(socketfd) == this->users.end())
+		throw std::runtime_error("No client with socketfd ");
 	return this->users.at(socketfd);
 }
 
@@ -195,7 +197,7 @@ bool pass(Server &server, int clientSocket, const char *password)
 		client.setAuthentified();
 		return true;
 	}
-	client.sendReply("464", client.getNickname().empty() ? "* " : client.getUsername() + " :" + ERR_PASSWDMISMATCH);
+	client.sendReply("464", (client.getNickname().empty() ? "* " : client.getUsername()) + " :" + ERR_PASSWDMISMATCH);
 	return false;
 }
 

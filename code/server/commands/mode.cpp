@@ -66,7 +66,7 @@ void mode(Server &server, int clientSocket, Message message)
 			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
-		channel->broadcast(client, "Set the mode +t for the channel" + channel->getName());
+		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " +t");
 		channel->addMode('t');
 	}
 	else if (mode_op == "-t")
@@ -76,7 +76,7 @@ void mode(Server &server, int clientSocket, Message message)
 			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
-		channel->broadcast(client, "Remove the mode +t for the channel" + channel->getName());
+		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " -t");
 		channel->removeMode('t');
 	}
 	else if (mode_op == "-i")
@@ -86,7 +86,7 @@ void mode(Server &server, int clientSocket, Message message)
 			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
-		channel->broadcast(client, "Remove the invite only mode for the channel" + channel->getName());
+		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " -i");
 		channel->removeMode('i');
 	}
 	else if (mode_op == "+i")
@@ -97,7 +97,7 @@ void mode(Server &server, int clientSocket, Message message)
 			return;
 		}
 		channel->addMode('i');
-		channel->broadcast(client, "Set the invite only mode for the channel" + channel->getName());
+		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " +i");
 	}
 	else if (mode_op == "-k")
 	{
@@ -106,7 +106,7 @@ void mode(Server &server, int clientSocket, Message message)
 			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
-		channel->broadcast(client, "Remove the password for the channel" + channel->getName());
+		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " -k");
 		channel->setPasswd("");
 	}
 	else if (mode_op == "-l")
@@ -116,7 +116,7 @@ void mode(Server &server, int clientSocket, Message message)
 			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
-		channel->broadcast(client, "Remove the limit of users for the channel" + channel->getName());
+		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " -l");
 		channel->setLimit(0);
 	}
 	if (message.getParameters().size() < 3)
@@ -132,7 +132,7 @@ void mode(Server &server, int clientSocket, Message message)
 			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
-		channel->broadcast(client, "Set the password for the channel" + channel->getName() + " :" + argument);
+		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " +k " + argument);
 		channel->setPasswd(argument);
 	}
 	else if (mode_op == "+o")
@@ -148,7 +148,7 @@ void mode(Server &server, int clientSocket, Message message)
 			client.sendReply("401", client.getNickname().empty() ? "* " : client.getUsername() + " " + argument + " :" + ERR_NOSUCHNICK);
 			return;
 		}
-		channel->broadcast(client, "Give the operator privilege to " + op.getNickname());
+		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " +o " + argument);
 		channel->addOp(op);
 	}
 	else if (mode_op == "-o")
@@ -164,7 +164,7 @@ void mode(Server &server, int clientSocket, Message message)
 			client.sendReply("401", client.getNickname().empty() ? "* " : client.getUsername() + " " + argument + " :" + ERR_NOSUCHNICK);
 			return;
 		}
-		channel->broadcast(client, "Remove the operator privilege to " + op.getNickname());
+		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " -o " + argument);
 		channel->removeOp(op);
 	}
 	else if (mode_op == "+l")

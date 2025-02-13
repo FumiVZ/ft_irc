@@ -20,6 +20,7 @@ private:
 public:
 	Channel(std::string name, Client &owner);
 	void broadcast(Client &c, std::string msg);
+	void broadcastMsg(Client &c, std::string msg);
 	std::string getName();
 	std::string getTopic();
 	std::vector<Client> &getClients();
