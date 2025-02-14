@@ -41,7 +41,7 @@ void mode(Server &server, int clientSocket, Message message)
 		client.sendReply("324", "RPL_CHANNELMODEIS " + channel->getName() + " +" + channel->getModes());
 		return;
 	}
-	if (message.getParameters().size() < 2 || message.getParameters().size() > 3)
+	if (message.getParameters().size() < 2)
 	{
 		client.sendReply("461", client.getNickname().empty() ? "* " : client.getUsername() + " MODE :" + ERR_WRONGPARAMCOUNT);
 		return;

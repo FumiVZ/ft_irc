@@ -49,6 +49,6 @@ void privmsg(Server &server, int clientSocket, Message message)
 			client.sendReply("401", client.getNickname().empty() ? "* " : client.getUsername() + " " + target + " :" + ERR_NOSUCHNICK);
 			return;
 		}
-		targetClient.sendReply("PRIVMSG", text);
+		targetClient.forwardMessage(":" + client.getNickname() + " PRIVMSG " + targetClient.getNickname() + " :" + text + "\r\n");
 	}
 }
