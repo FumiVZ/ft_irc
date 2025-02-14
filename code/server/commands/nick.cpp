@@ -26,13 +26,13 @@ void nick(Server &server, int clientSocket, Message message)
 	Client &client = server.getClient(clientSocket);
 	if (message.getParameters().size() != 1)
 	{
-		client.sendReply("431", client.getNickname().empty() ? "* " : client.getUsername() + " :" + ERR_NONICKNAMEGIVEN);
+		client.sendReply("431",(client.getNickname().empty() ? "* " : client.getUsername()) + " :" + ERR_NONICKNAMEGIVEN);
 		return;
 	}
 	std::string nickname = message.getParameters()[0];
 	if (nickname.empty())
 	{
-		client.sendReply("431", client.getNickname().empty() ? "* " : client.getUsername() + " :" + ERR_NONICKNAMEGIVEN);
+		client.sendReply("431",(client.getNickname().empty() ? "* " : client.getUsername()) + " :" + ERR_NONICKNAMEGIVEN);
 		return;
 	}
 	if (!is_valid_nickname(nickname))

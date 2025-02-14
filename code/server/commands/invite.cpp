@@ -5,7 +5,7 @@ void invite(Server &server, int clientSocket, Message message)
 	Client &client = server.getClient(clientSocket);
 	if (message.getParameters().size() != 2)
 	{
-		client.sendReply("461", client.getNickname().empty() ? "* " : client.getUsername() + " INVITE :" + ERR_WRONGPARAMCOUNT);
+		client.sendReply("461", (client.getNickname().empty() ? "* " : client.getUsername()) + " INVITE :" + ERR_WRONGPARAMCOUNT);
 		return;
 	}
 	std::string nickname = message.getParameters()[0];
@@ -14,7 +14,7 @@ void invite(Server &server, int clientSocket, Message message)
 	Channel *channel = server.getChannel(channel_name);
 	if (channel == NULL)
 	{
-		client.sendReply("403", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_NOSUCHCHANNEL);
+		client.sendReply("403", (client.getNickname().empty() ? "* " : client.getUsername()) + " " + channel_name + " :" + ERR_NOSUCHCHANNEL);
 		return;
 	}
 	Client &requester = client;
@@ -23,17 +23,17 @@ void invite(Server &server, int clientSocket, Message message)
 		Client &target = server.getClient(nickname);
 		if (!channel->isOp(requester) && !channel->isClient(requester))
 		{
-			client.sendReply("442", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_NOTONCHANNEL);
+			client.sendReply("442", (client.getNickname().empty() ? "* " : client.getUsername()) + " " + channel_name + " :" + ERR_NOTONCHANNEL);
 			return;
 		}
 		if (channel->isClient(target))
 		{
-			client.sendReply("443", client.getNickname().empty() ? "* " : client.getUsername() + " " + nickname + " " + channel_name + " :" + ERR_USERONCHAN);
+			client.sendReply("443", (client.getNickname().empty() ? "* " : client.getUsername()) + " " + nickname + " " + channel_name + " :" + ERR_USERONCHAN);
 			return;
 		}
 		if (!server.isNicknameInUse(nickname))
 		{
-			client.sendReply("401", client.getNickname().empty() ? "* " : client.getUsername() + " " + nickname + " :" + ERR_NOSUCHNICK);
+			client.sendReply("401", (client.getNickname().empty() ? "* " : client.getUsername()) + " " + nickname + " :" + ERR_NOSUCHNICK);
 			return;
 		}
 		target.addChannel(channel);
@@ -41,7 +41,7 @@ void invite(Server &server, int clientSocket, Message message)
 	}
 	catch(const std::exception& e)
 	{
-		client.sendReply("401", client.getNickname().empty() ? "* " : client.getUsername() + " " + nickname + " :" + ERR_NOSUCHNICK);
+		client.sendReply("401", (client.getNickname().empty() ? "* " : client.getUsername()) + " " + nickname + " :" + ERR_NOSUCHNICK);
 	}
 	
 }

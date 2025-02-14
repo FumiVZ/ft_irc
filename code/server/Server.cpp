@@ -245,7 +245,7 @@ void receiveMessage(Server &server, int clientSocket)
 	}
 	if (n > 512)
 	{
-		client.sendReply("417", client.getNickname().empty() ? "* " : client.getUsername() + " :" + ERR_INPUTTOOLONG);
+		client.sendReply("417", (client.getNickname().empty() ? "* " : client.getUsername()) + " :" + ERR_INPUTTOOLONG);
 		return;
 	}
 	std::string message(buffer, n);
@@ -289,7 +289,7 @@ void receiveMessage(Server &server, int clientSocket)
 							pass(server, clientSocket, new_mess.getParameters()[0].c_str());
 					}
 					else
-						client.sendReply("451", client.getNickname().empty() ? "* " : client.getUsername() + " :" + ERR_NOTREGISTERED);
+						client.sendReply("451", (client.getNickname().empty() ? "* " : client.getUsername()) + " :" + ERR_NOTREGISTERED);
 				}
 				else
 					parseCommand(server, clientSocket, new_mess);
@@ -327,7 +327,7 @@ void auth_client(Server &server, int clientSocket, Message message)
 	}
 	else
 	{
-		client.sendReply("451", client.getNickname().empty() ? "* " : client.getUsername() + " :" + ERR_NOTREGISTERED);
+		client.sendReply("451", (client.getNickname().empty() ? "* " : client.getUsername()) + " :" + ERR_NOTREGISTERED);
 	}
 }
 
@@ -449,7 +449,8 @@ void Server::broadcast(std::string message)
 {
 	for (std::map<int, Client>::iterator it = this->users.begin(); it != this->users.end(); ++it)
 	{
-		send(it->first, message.c_str(), message.length(), 0);
+		if (it->second.isConnected(it->first))
+			send(it->first, message.c_str(), message.length(), 0);
 	}
 }
 

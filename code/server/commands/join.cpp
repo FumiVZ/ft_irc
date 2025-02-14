@@ -18,12 +18,12 @@ void join(Server &server, int clientSocket, Message message)
 	Client &client = server.getClient(clientSocket);
 	if (message.getParameters().size() < 1)
 	{
-		client.sendReply("461", client.getNickname().empty() ? "* " : client.getUsername() + " JOIN :" + ERR_WRONGPARAMCOUNT);
+		client.sendReply("461", (client.getNickname().empty() ? "* " : client.getUsername()) + " JOIN :" + ERR_WRONGPARAMCOUNT);
 		return;
 	}
 	if (!is_valid_channel_name(message.getParameters()[0]))
 	{
-		client.sendReply("403", client.getNickname().empty() ? "* " : client.getUsername() + " " + message.getParameters()[0] + " :" + ERR_NOSUCHCHANNEL);
+		client.sendReply("403", (client.getNickname().empty() ? "* " : client.getUsername()) + " " + message.getParameters()[0] + " :" + ERR_NOSUCHCHANNEL);
 		return;
 	}
 	std::string channel_name = message.getParameters()[0];
@@ -37,17 +37,17 @@ void join(Server &server, int clientSocket, Message message)
 		}
 		if ((message.getParameters().size() == 1 && channel->getPasswd() != "") || (message.getParameters().size() == 2 && (channel->getPasswd() != message.getParameters()[1])))
 		{
-			client.sendReply("475", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_BADCHANNELKEY);
+			client.sendReply("475", (client.getNickname().empty() ? "* " : client.getUsername()) + " " + channel_name + " :" + ERR_BADCHANNELKEY);
 			return;
 		}
 		if (channel->getLimit() != 0 && channel->getClients().size() >= channel->getLimit())
 		{
-			client.sendReply("471", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANNELISFULL);
+			client.sendReply("471", (client.getNickname().empty() ? "* " : client.getUsername()) + " " + channel_name + " :" + ERR_CHANNELISFULL);
 			return;
 		}
 		if (channel->isMode('i') && std::find(client.getChannels().begin(), client.getChannels().end(), channel) == client.getChannels().end())
 		{
-			client.sendReply("473", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_INVITEONLYCHAN);
+			client.sendReply("473", (client.getNickname().empty() ? "* " : client.getUsername()) + " " + channel_name + " :" + ERR_INVITEONLYCHAN);
 			return;
 		}
 		if (!channel->isClient(client))

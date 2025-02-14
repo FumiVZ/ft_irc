@@ -35,7 +35,7 @@ void mode(Server &server, int clientSocket, Message message)
 		Channel *channel = server.getChannel(message.getParameters()[0]);
 		if (channel == NULL)
 		{
-			client.sendReply("403", client.getNickname().empty() ? "* " : client.getUsername() + " " + message.getParameters()[0] + " :" + ERR_NOSUCHCHANNEL);
+			client.sendReply("403",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + message.getParameters()[0] + " :" + ERR_NOSUCHCHANNEL);
 			return;
 		}
 		client.sendReply("324", "RPL_CHANNELMODEIS " + channel->getName() + " +" + channel->getModes());
@@ -43,7 +43,7 @@ void mode(Server &server, int clientSocket, Message message)
 	}
 	if (message.getParameters().size() < 2)
 	{
-		client.sendReply("461", client.getNickname().empty() ? "* " : client.getUsername() + " MODE :" + ERR_WRONGPARAMCOUNT);
+		client.sendReply("461",(client.getNickname().empty() ? "* " : client.getUsername()) + " MODE :" + ERR_WRONGPARAMCOUNT);
 		return;
 	}
 	std::string channel_name = message.getParameters()[0];
@@ -52,19 +52,19 @@ void mode(Server &server, int clientSocket, Message message)
 	Channel *channel = server.getChannel(channel_name);
 	if (channel == NULL)
 	{
-		client.sendReply("403", client.getNickname().empty() ? "* " : client.getUsername() + " " + message.getParameters()[0] + " :" + ERR_NOSUCHCHANNEL);
+		client.sendReply("403",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + message.getParameters()[0] + " :" + ERR_NOSUCHCHANNEL);
 		return;
 	}
 	if (mode_op != "+i" && mode_op != "-i" && mode_op != "+t" && mode_op != "-t" && mode_op != "+k" && mode_op != "-k" && mode_op != "+o" && mode_op != "-o" && mode_op != "+l" && mode_op != "-l")
 	{
-		client.sendReply("472", client.getNickname().empty() ? "* " : client.getUsername() + " " + mode_op + " :" + ERR_UNKNOWNMODE);
+		client.sendReply("472",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + mode_op + " :" + ERR_UNKNOWNMODE);
 		return;
 	}
 	if (mode_op == "+t")
 	{
 		if (!isOperator(server, clientSocket, channel_name))
 		{
-			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
+			client.sendReply("482",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
 		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " +t");
@@ -75,7 +75,7 @@ void mode(Server &server, int clientSocket, Message message)
 	{
 		if (!isOperator(server, clientSocket, channel_name))
 		{
-			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
+			client.sendReply("482",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
 		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " -t");
@@ -86,7 +86,7 @@ void mode(Server &server, int clientSocket, Message message)
 	{
 		if (!isOperator(server, clientSocket, channel_name))
 		{
-			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
+			client.sendReply("482",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
 		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " -i");
@@ -96,7 +96,7 @@ void mode(Server &server, int clientSocket, Message message)
 	{
 		if (!isOperator(server, clientSocket, channel_name))
 		{
-			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
+			client.sendReply("482",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
 		channel->addMode('i');
@@ -107,7 +107,7 @@ void mode(Server &server, int clientSocket, Message message)
 	{
 		if (!isOperator(server, clientSocket, channel_name))
 		{
-			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
+			client.sendReply("482",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
 		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " -k");
@@ -118,7 +118,7 @@ void mode(Server &server, int clientSocket, Message message)
 	{
 		if (!isOperator(server, clientSocket, channel_name))
 		{
-			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
+			client.sendReply("482",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
 		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " -l");
@@ -127,7 +127,7 @@ void mode(Server &server, int clientSocket, Message message)
 	}
 	if (message.getParameters().size() < 3)
 	{
-		client.sendReply("461", client.getNickname().empty() ? "* " : client.getUsername() + " MODE :" + ERR_WRONGPARAMCOUNT);
+		client.sendReply("461",(client.getNickname().empty() ? "* " : client.getUsername()) + " MODE :" + ERR_WRONGPARAMCOUNT);
 		return;
 	}
 	std::string argument = message.getParameters()[2];
@@ -135,7 +135,7 @@ void mode(Server &server, int clientSocket, Message message)
 	{
 		if (!isOperator(server, clientSocket, channel_name))
 		{
-			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
+			client.sendReply("482",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
 		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " +k " + argument);
@@ -145,7 +145,7 @@ void mode(Server &server, int clientSocket, Message message)
 	{
 		if (!isOperator(server, clientSocket, channel_name))
 		{
-			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
+			client.sendReply("482",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
 		try
@@ -156,14 +156,14 @@ void mode(Server &server, int clientSocket, Message message)
 		}
 		catch (const std::exception &e)
 		{
-			client.sendReply("401", client.getNickname().empty() ? "* " : client.getUsername() + " " + argument + " :" + ERR_NOSUCHNICK);
+			client.sendReply("401",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + argument + " :" + ERR_NOSUCHNICK);
 		}
 	}
 	else if (mode_op == "-o")
 	{
 		if (!isOperator(server, clientSocket, channel_name))
 		{
-			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
+			client.sendReply("482",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
 		try
@@ -174,26 +174,26 @@ void mode(Server &server, int clientSocket, Message message)
 		}
 		catch (const std::exception &e)
 		{
-			client.sendReply("401", client.getNickname().empty() ? "* " : client.getUsername() + " " + argument + " :" + ERR_NOSUCHNICK);
+			client.sendReply("401",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + argument + " :" + ERR_NOSUCHNICK);
 		}
 	}
 	else if (mode_op == "+l")
 	{
 		if (!isOperator(server, clientSocket, channel_name))
 		{
-			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
+			client.sendReply("482",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
 		if (!isNumeric(argument))
 		{
-			client.sendReply("461", client.getNickname().empty() ? "* " : client.getUsername() + " MODE :" + ERR_WRONGPARAMCOUNT);
+			client.sendReply("461",(client.getNickname().empty() ? "* " : client.getUsername()) + " MODE :" + ERR_WRONGPARAMCOUNT);
 			return;
 		}
 		int limit;
 		std::istringstream(argument) >> limit;
 		if (limit <= 0)
 		{
-			client.sendReply("461", client.getNickname().empty() ? "* " : client.getUsername() + " MODE :" + ERR_WRONGPARAMCOUNT);
+			client.sendReply("461",(client.getNickname().empty() ? "* " : client.getUsername()) + " MODE :" + ERR_WRONGPARAMCOUNT);
 			return;
 		}
 		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " +l " + argument);
