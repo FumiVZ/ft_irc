@@ -135,20 +135,6 @@ struct sockaddr_in acceptClient(Server &server, std::vector<pollfd> &fds)
 	fds.push_back(clientPoll);
 	std::cout << "New connection at " << get_ip(&clientAddr.sin_addr) << " (" << get_hostname(clientAddr) << ")" << std::endl;
 	server.addUser(clientSocket, client);
-	if (DEBUG == 1)
-	{
-		std::string nickname = "test";
-		server.getClient(clientSocket).setAuth(true);
-		if (!(server.isNicknameInUse(nickname)))
-			server.getClient(clientSocket).setNickname("test");
-		else
-			server.getClient(clientSocket).setNickname("test1");
-		server.getClient(clientSocket).setUsername("test");
-		server.getClient(clientSocket).setHostname("test");
-		std::ostringstream oss;
-		oss << clientSocket;
-		server.getClient(clientSocket).sendReply("001", "User " + server.getClient(clientSocket).getNickname() + "nick: " + server.getClient(clientSocket).getNickname() + "clientsocket: " + oss.str());
-	}
 	return clientAddr;
 }
 

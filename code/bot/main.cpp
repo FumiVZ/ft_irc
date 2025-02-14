@@ -4,11 +4,11 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <cstring>
+#include <sstream>
 #include "Wordle.hpp"
 
 void parseMessage(const std::string &message, std::string &sender, std::string &command, std::string &channel, std::string &content)
 {
-	// Format: :sender COMMAND channel :content
 	size_t pos = message.find(" ");
 	if (pos != std::string::npos)
 	{
@@ -45,19 +45,31 @@ void startWordle(int sock, const std::string &channel)
 	send(sock, message.c_str(), message.length(), 0);
 }
 
-int main()
+int main(int ac, char **av)
 {
+	if (ac < 4)
+	{
+		std::cerr << "Usage: " << av[0] << " <password> <port> <ip>" << std::endl;
+		return 1;
+	}
+	std::istringstream port(av[2]);
+	int port_int;
+	port >> port_int;
+	if (port_int <= 0 || port_int > 65535)
+	{
+		std::cerr << "Port must be greater than 0 or inferior to 65535" << std::endl;
+		return 1;
+	}
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock < 0)
 	{
 		std::cerr << "Erreur création socket" << std::endl;
 		return 1;
 	}
-
 	struct sockaddr_in serverAddr;
 	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_port = htons(6667);
-	serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	serverAddr.sin_port = htons(port_int);
+	serverAddr.sin_addr.s_addr = inet_addr(av[3]);
 
 	if (connect(sock, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0)
 	{
@@ -68,17 +80,18 @@ int main()
 
 	std::cout << "Connecté au serveur IRC local" << std::endl;
 
-	const char *password = "password";
+	const char *password = av[1];
 	const char *nickname = "MonBot";
-	// const char* username = "monbot";
-
-	std::string pass = "NICK " + std::string(password) + "\r\n";
+	const char *user = "monbot 0 * :monbot\r\n";
+	std::string pass = "PASS " + std::string(password) + "\r\n";
 	std::string nick = "NICK " + std::string(nickname) + "\r\n";
-	// std::string user = "USER " + std::string(username) + "\r\n";
-
+	std::string usr = "USER " + std::string(user) + "\r\n";
 	send(sock, pass.c_str(), pass.length(), 0);
 	usleep(100000); // 100ms delay
 	send(sock, nick.c_str(), nick.length(), 0);
+	usleep(100000); // 100ms delay
+	send(sock, usr.c_str(), usr.length(), 0);
+	
 	// usleep(100000); // 100ms delay
 	// send(sock, user.c_str(), user.length(), 0);
 
