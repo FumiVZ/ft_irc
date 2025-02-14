@@ -142,14 +142,16 @@ void mode(Server &server, int clientSocket, Message message)
 			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
-		Client &op = server.getClient(argument);
-		if (op.getNickname().empty())
+		try
+		{
+			Client &op = server.getClient(argument);
+			channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " +o " + argument);
+			channel->addOp(op);
+		}
+		catch (const std::exception &e)
 		{
 			client.sendReply("401", client.getNickname().empty() ? "* " : client.getUsername() + " " + argument + " :" + ERR_NOSUCHNICK);
-			return;
 		}
-		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " +o " + argument);
-		channel->addOp(op);
 	}
 	else if (mode_op == "-o")
 	{
@@ -158,14 +160,16 @@ void mode(Server &server, int clientSocket, Message message)
 			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
-		Client &op = server.getClient(argument);
-		if (op.getNickname().empty())
+		try
+		{
+			Client &op = server.getClient(argument);
+			channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " -o " + argument);
+			channel->removeOp(op);
+		}
+		catch (const std::exception &e)
 		{
 			client.sendReply("401", client.getNickname().empty() ? "* " : client.getUsername() + " " + argument + " :" + ERR_NOSUCHNICK);
-			return;
 		}
-		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " -o " + argument);
-		channel->removeOp(op);
 	}
 	else if (mode_op == "+l")
 	{
@@ -186,7 +190,7 @@ void mode(Server &server, int clientSocket, Message message)
 			client.sendReply("461", client.getNickname().empty() ? "* " : client.getUsername() + " MODE :" + ERR_WRONGPARAMCOUNT);
 			return;
 		}
-		channel->broadcast(client, "Set the limit of users 	for the channel" + channel->getName() + " :" + argument);
+		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " +l " + argument);
 		std::cout << "limit: " << limit << std::endl;
 		channel->setLimit(limit);
 	}

@@ -30,6 +30,7 @@ class Server;
 #define ERR_INVITEONLYCHAN "Invite only channel"
 #define ERR_MESSAGETOOLONG "Message too long"
 #define ERR_INPUTTOOLONG "Input line was too long"
+#define ERR_USERONCHAN "User is already on channel"
 void rpl_welcome(Client client);
 void rpl_endofnames(Client &c);
 void rpl_namreply(Client &c, Channel &ch);

@@ -43,12 +43,14 @@ void privmsg(Server &server, int clientSocket, Message message)
 	}
 	else
 	{
-		Client &targetClient = server.getClient(target);
-		if (targetClient.getNickname().empty())
+		try
+		{
+			Client &targetClient = server.getClient(target);
+			targetClient.forwardMessage(":" + client.getNickname() + " PRIVMSG " + targetClient.getNickname() + " :" + text + "\r\n");
+		}
+		catch (const std::exception &e)
 		{
 			client.sendReply("401", client.getNickname().empty() ? "* " : client.getUsername() + " " + target + " :" + ERR_NOSUCHNICK);
-			return;
 		}
-		targetClient.forwardMessage(":" + client.getNickname() + " PRIVMSG " + targetClient.getNickname() + " :" + text + "\r\n");
 	}
 }

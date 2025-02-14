@@ -22,29 +22,36 @@ void kick(Server &server, int clientSocket, Message message)
 		return;
 	}
 	Client &requester = client;
-	Client &target = server.getClient(nickname);
-	if (!channel->isOp(requester) && !channel->isClient(requester))
+	try
 	{
-		client.sendReply("442", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_NOTONCHANNEL);
-		return;
+		Client &target = server.getClient(nickname);
+		if (!channel->isOp(requester) && !channel->isClient(requester))
+		{
+			client.sendReply("442", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_NOTONCHANNEL);
+			return;
+		}
+		if (!channel->isClient(target))
+		{
+			client.sendReply("441", client.getNickname().empty() ? "* " : client.getUsername() + " " + nickname + " " + channel_name + " :" + ERR_USERNOTINCHANNEL);
+			return;
+		}
+		if (target.getNickname().empty())
+		{
+			client.sendReply("401", client.getNickname().empty() ? "* " : client.getUsername() + " " + nickname + " :" + ERR_NOSUCHNICK);
+			return;
+		}
+		if (!channel->isOp(requester))
+		{
+			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel->getName() + " :" + ERR_CHANOPRIVSNEEDED);
+			return;
+		}
+		channel->broadcast(requester, " KICK " + channel->getName() + " " + target.getNickname() + " :" + reason);
+		channel->removeClient(target);
+		channel->removeOp(target);
+		target.removeChannel(channel);
 	}
-	if (!channel->isClient(target))
-	{
-		client.sendReply("441", client.getNickname().empty() ? "* " : client.getUsername() + " " + nickname + " " + channel_name + " :" + ERR_USERNOTINCHANNEL);
-		return;
-	}
-	if (target.getNickname().empty())
+	catch (const std::exception &e)
 	{
 		client.sendReply("401", client.getNickname().empty() ? "* " : client.getUsername() + " " + nickname + " :" + ERR_NOSUCHNICK);
-		return;
 	}
-	if (!channel->isOp(requester))
-	{
-		client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel->getName() + " :" + ERR_CHANOPRIVSNEEDED);
-		return;
-	}
-	channel->broadcast(requester, " KICK " + channel->getName() + " " + target.getNickname() + " :" + reason);
-	channel->removeClient(target);
-	channel->removeOp(target);
-	target.removeChannel(channel);
 }
