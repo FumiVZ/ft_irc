@@ -45,7 +45,7 @@ public:
 	void setBuffer(std::string buffer);
 	void addBuffer(std::string buffer);
 	std::string getBuffer();
-
+	bool isConnected(int socketfd);
 	void forwardMessage(std::string message);
 	char mode;
 	/*

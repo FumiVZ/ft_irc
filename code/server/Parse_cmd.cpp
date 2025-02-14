@@ -58,7 +58,7 @@ void parseCommand(Server &server, int clientSocket, Message message)
 	}
 	if (client.getNickname().empty() || client.getUsername().empty())
 	{
-		client.sendReply("451", client.getNickname().empty() ? "* " : client.getUsername() + " :" + ERR_NOTREGISTERED);
+		client.sendReply("451", (((client.getNickname().empty() ? "* " : client.getUsername()))) + " :" + ERR_NOTREGISTERED);
 		return;
 	}
 	client.sendReply("421", client.getNickname() + " " + message.getCommand() + " :" + ERR_UNKNOWNCOMMAND);

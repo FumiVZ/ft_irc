@@ -5,7 +5,7 @@ void kick(Server &server, int clientSocket, Message message)
 	Client &client = server.getClient(clientSocket);
 	if (message.getParameters().size() != 2)
 	{
-		client.sendReply("461", client.getNickname().empty() ? "* " : client.getUsername() + " KICK :" + ERR_WRONGPARAMCOUNT);
+		client.sendReply("461",(client.getNickname().empty() ? "* " : client.getUsername()) + " KICK :" + ERR_WRONGPARAMCOUNT);
 		return;
 	}
 	std::string channel_name = message.getParameters()[0];
@@ -19,7 +19,7 @@ void kick(Server &server, int clientSocket, Message message)
 	Channel *channel = server.getChannel(channel_name);
 	if (channel == NULL)
 	{
-		client.sendReply("403", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_NOSUCHCHANNEL);
+		client.sendReply("403",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + channel_name + " :" + ERR_NOSUCHCHANNEL);
 		return;
 	}
 	Client &requester = client;
@@ -28,22 +28,22 @@ void kick(Server &server, int clientSocket, Message message)
 		Client &target = server.getClient(nickname);
 		if (!channel->isOp(requester) && !channel->isClient(requester))
 		{
-			client.sendReply("442", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_NOTONCHANNEL);
+			client.sendReply("442",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + channel_name + " :" + ERR_NOTONCHANNEL);
 			return;
 		}
 		if (!channel->isClient(target))
 		{
-			client.sendReply("441", client.getNickname().empty() ? "* " : client.getUsername() + " " + nickname + " " + channel_name + " :" + ERR_USERNOTINCHANNEL);
+			client.sendReply("441",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + nickname + " " + channel_name + " :" + ERR_USERNOTINCHANNEL);
 			return;
 		}
 		if (target.getNickname().empty())
 		{
-			client.sendReply("401", client.getNickname().empty() ? "* " : client.getUsername() + " " + nickname + " :" + ERR_NOSUCHNICK);
+			client.sendReply("401",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + nickname + " :" + ERR_NOSUCHNICK);
 			return;
 		}
 		if (!channel->isOp(requester))
 		{
-			client.sendReply("482", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel->getName() + " :" + ERR_CHANOPRIVSNEEDED);
+			client.sendReply("482",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + channel->getName() + " :" + ERR_CHANOPRIVSNEEDED);
 			return;
 		}
 		channel->broadcast(requester, " KICK " + channel->getName() + " " + target.getNickname() + " :" + reason);
@@ -53,6 +53,6 @@ void kick(Server &server, int clientSocket, Message message)
 	}
 	catch (const std::exception &e)
 	{
-		client.sendReply("401", client.getNickname().empty() ? "* " : client.getUsername() + " " + nickname + " :" + ERR_NOSUCHNICK);
+		client.sendReply("401",(client.getNickname().empty() ? "* " : client.getUsername()) + " " + nickname + " :" + ERR_NOSUCHNICK);
 	}
 }
