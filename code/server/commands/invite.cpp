@@ -17,17 +17,30 @@ void invite(Server &server, int clientSocket, Message message)
 		return;
 	}
 	Client &requester = client;
-	Client &target = server.getClient(nickname);
-	if (!channel->isOp(requester) && !channel->isClient(requester))
+	try
 	{
-		client.sendReply("442", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_NOTONCHANNEL);
-		return;
+		Client &target = server.getClient(nickname);
+		if (!channel->isOp(requester) && !channel->isClient(requester))
+		{
+			client.sendReply("442", client.getNickname().empty() ? "* " : client.getUsername() + " " + channel_name + " :" + ERR_NOTONCHANNEL);
+			return;
+		}
+		if (channel->isClient(target))
+		{
+			client.sendReply("443", client.getNickname().empty() ? "* " : client.getUsername() + " " + nickname + " " + channel_name + " :" + ERR_USERONCHAN);
+			return;
+		}
+		if (!server.isNicknameInUse(nickname))
+		{
+			client.sendReply("401", client.getNickname().empty() ? "* " : client.getUsername() + " " + nickname + " :" + ERR_NOSUCHNICK);
+			return;
+		}
+		target.addChannel(channel);
+		rpl_invite(requester, target, channel);
 	}
-	if (!server.isNicknameInUse(nickname))
+	catch(const std::exception& e)
 	{
 		client.sendReply("401", client.getNickname().empty() ? "* " : client.getUsername() + " " + nickname + " :" + ERR_NOSUCHNICK);
-		return;
 	}
-	target.addChannel(channel);
-	rpl_invite(requester, target, channel);
+	
 }
