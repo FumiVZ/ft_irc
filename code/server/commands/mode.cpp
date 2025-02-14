@@ -47,6 +47,7 @@ void mode(Server &server, int clientSocket, Message message)
 		return;
 	}
 	std::string channel_name = message.getParameters()[0];
+	upcase(channel_name);
 	std::string mode_op = message.getParameters()[1];
 	Channel *channel = server.getChannel(channel_name);
 	if (channel == NULL)
@@ -68,6 +69,7 @@ void mode(Server &server, int clientSocket, Message message)
 		}
 		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " +t");
 		channel->addMode('t');
+		return ;
 	}
 	else if (mode_op == "-t")
 	{
@@ -78,6 +80,7 @@ void mode(Server &server, int clientSocket, Message message)
 		}
 		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " -t");
 		channel->removeMode('t');
+		return ;
 	}
 	else if (mode_op == "-i")
 	{
@@ -98,6 +101,7 @@ void mode(Server &server, int clientSocket, Message message)
 		}
 		channel->addMode('i');
 		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " +i");
+		return ;
 	}
 	else if (mode_op == "-k")
 	{
@@ -108,6 +112,7 @@ void mode(Server &server, int clientSocket, Message message)
 		}
 		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " -k");
 		channel->setPasswd("");
+		return ;
 	}
 	else if (mode_op == "-l")
 	{
@@ -118,6 +123,7 @@ void mode(Server &server, int clientSocket, Message message)
 		}
 		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " -l");
 		channel->setLimit(0);
+		return ;
 	}
 	if (message.getParameters().size() < 3)
 	{
@@ -191,7 +197,6 @@ void mode(Server &server, int clientSocket, Message message)
 			return;
 		}
 		channel->broadcast(server.getClient(clientSocket), " MODE " + channel->getName() + " +l " + argument);
-		std::cout << "limit: " << limit << std::endl;
 		channel->setLimit(limit);
 	}
 }

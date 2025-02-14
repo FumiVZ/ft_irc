@@ -9,6 +9,7 @@ void kick(Server &server, int clientSocket, Message message)
 		return;
 	}
 	std::string channel_name = message.getParameters()[0];
+	upcase(channel_name);
 	std::string nickname = message.getParameters()[1];
 	std::string reason;
 	if (message.getText().empty())

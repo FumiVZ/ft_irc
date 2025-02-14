@@ -10,6 +10,7 @@ void invite(Server &server, int clientSocket, Message message)
 	}
 	std::string nickname = message.getParameters()[0];
 	std::string channel_name = message.getParameters()[1];
+	upcase(channel_name);
 	Channel *channel = server.getChannel(channel_name);
 	if (channel == NULL)
 	{
