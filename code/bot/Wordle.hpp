@@ -8,8 +8,10 @@ class Wordle
 {
 public:
 	Wordle();
-	bool CheckWin(std::string &word);
+	bool CheckWin(std::string &word, std::string result);
 	std::string playWordle(std::string &word);
+	~Wordle();
+	std::string getWord() { return this->Word; }
 
 private:
 	std::vector<std::string> wordbase;

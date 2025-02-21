@@ -2,6 +2,7 @@
 
 void privmsg(Server &server, int clientSocket, Message message)
 {
+	std::cout << message << std::endl;
 	Client &client = server.getClient(clientSocket);
 	if (message.getParameters().size() < 1)
 	{
@@ -27,6 +28,7 @@ void privmsg(Server &server, int clientSocket, Message message)
 	}
 	if (target[0] == '#')
 	{
+		upcase(target);
 		Channel *channel = server.getChannel(target);
 		if (channel == NULL)
 		{
