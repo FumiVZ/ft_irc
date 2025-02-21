@@ -5,7 +5,12 @@
 #include <unistd.h>
 #include <cstring>
 #include <sstream>
+#include <signal.h>
+#include <errno.h>
+#include <fcntl.h>
 #include "Wordle.hpp"
+
+static int g_signal = 1;
 
 void parseMessage(const std::string &message, std::string &sender, std::string &command, std::string &channel, std::string &content)
 {
@@ -27,22 +32,38 @@ void parseMessage(const std::string &message, std::string &sender, std::string &
 	}
 }
 
-void startWordle(int sock, const std::string &channel)
+void sigint_handler(int signum)
 {
-	Wordle wordleGame;
-	std::string word;
+	if (signum == SIGINT)
+		g_signal = 0;
+	std::cout << "Server stopped" << std::endl;
+}
+
+std::string MakeVisible(std::string str)
+{
 	std::string result;
-	while (!wordleGame.CheckWin(word))
+	for (size_t i = 0; i < str.size(); i++)
 	{
-		std::string message = "PRIVMSG " + channel + " :";
-		send(sock, message.c_str(), message.length(), 0);
-		std::cin >> word;
-		result = wordleGame.playWordle(word);
-		message = "PRIVMSG " + channel + " :" + result + "\r\n";
-		send(sock, message.c_str(), message.length(), 0);
+		if (str[i] == '\0')
+			result += "EOF";
+		else if (str[i] == '\a')
+			result += "\\a";
+		else if (str[i] == '\b')
+			result += "\\b";
+		else if (str[i] == '\t')
+			result += "\\t";
+		else if (str[i] == '\n')
+			result += "\\n";
+		else if (str[i] == '\v')
+			result += "\\v";
+		else if (str[i] == '\f')
+			result += "\\f";
+		else if (str[i] == '\r')
+			result += "\\r";
+		else
+			result += str[i];
 	}
-	std::string message = "PRIVMSG " + channel + " :You won!" + "\r\n";
-	send(sock, message.c_str(), message.length(), 0);
+	return result;
 }
 
 int main(int ac, char **av)
@@ -52,6 +73,7 @@ int main(int ac, char **av)
 		std::cerr << "Usage: " << av[0] << " <password> <port> <ip>" << std::endl;
 		return 1;
 	}
+	signal(SIGINT, sigint_handler);
 	std::istringstream port(av[2]);
 	int port_int;
 	port >> port_int;
@@ -79,7 +101,6 @@ int main(int ac, char **av)
 	}
 
 	std::cout << "Connecté au serveur IRC local" << std::endl;
-
 	const char *password = av[1];
 	const char *nickname = "MonBot";
 	const char *user = "monbot 0 * :monbot\r\n";
@@ -87,14 +108,10 @@ int main(int ac, char **av)
 	std::string nick = "NICK " + std::string(nickname) + "\r\n";
 	std::string usr = "USER " + std::string(user) + "\r\n";
 	send(sock, pass.c_str(), pass.length(), 0);
-	usleep(100000); // 100ms delay
+	usleep(50000);
 	send(sock, nick.c_str(), nick.length(), 0);
-	usleep(100000); // 100ms delay
+	usleep(50000);
 	send(sock, usr.c_str(), usr.length(), 0);
-	
-	// usleep(100000); // 100ms delay
-	// send(sock, user.c_str(), user.length(), 0);
-
 	char buffer[1024];
 	bool connected = false;
 	while (!connected)
@@ -108,29 +125,65 @@ int main(int ac, char **av)
 				connected = true;
 			}
 		}
-		usleep(100000); // 100ms delay
+		usleep(50000);
 	}
-
 	std::string join = "JOIN #channel\r\n";
 	send(sock, join.c_str(), join.length(), 0);
-	usleep(500000);
-
-	while (true)
+	usleep(50000);
+	Wordle wordleGame;
+	bool gameStarted = false;
+	std::string result;
+	while (g_signal)
 	{
 		memset(buffer, 0, sizeof(buffer));
-		int bytesRead = recv(sock, buffer, sizeof(buffer) - 1, 0);
-		if (bytesRead <= 0)
+		usleep(50000);
+		fcntl(sock, F_SETFL, O_NONBLOCK);
+		int bytesRead = recv(sock, buffer, sizeof(buffer), 0);
+		if (bytesRead < 0)
+			continue;
+		else if (bytesRead == 0)
+		{
+			std::cerr << "Connection closed" << std::endl;
 			break;
-
-		std::string message(buffer);
+		}
+		std::string message(buffer, bytesRead);
 		std::string sender, command, channel, content;
+		content = "";
 		parseMessage(message, sender, command, channel, content);
-
+		memset(buffer, 0, sizeof(buffer));
 		if (command == "PRIVMSG")
 		{
-			if (content.substr(0, 7) == "!wordle ")
+			if (content.substr(0, 7) == "!wordle" || gameStarted)
 			{
-				startWordle(sock, channel);
+				if (!gameStarted)
+				{
+					send(sock, "PRIVMSG #CHANNEL :Starting Wordle game\r\n", 41, 0);
+					usleep(50000);
+					gameStarted = true;
+					continue;
+				}
+				result = wordleGame.playWordle(content);
+				std::string msg;
+				msg = "PRIVMSG #CHANNEL :" + result + "\r\n";
+				if (result == "YOU WIN!")
+				{
+					send(sock, "PRIVMSG #CHANNEL :You win!\r\n", 29, 0);
+					usleep(50000);
+					gameStarted = false;
+				}
+				else
+				{
+					size_t i;
+					for (i = 0; i < msg.length(); i++)
+						if (msg[i] == '\0')
+							msg.erase(i, 1);
+					i = 0;
+					std::cout << "Sending: " << MakeVisible(msg) << std::endl;
+					std::cout << "SOCKET: " << sock << std::endl;
+					std::cout << "LENGTH: " << msg.length() << std::endl;
+					send(sock, msg.c_str(), msg.length(), 0);
+				}
+
 			}
 		}
 	}
