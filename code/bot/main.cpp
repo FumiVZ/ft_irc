@@ -157,33 +157,35 @@ int main(int ac, char **av)
 			{
 				if (!gameStarted)
 				{
-					send(sock, "PRIVMSG #CHANNEL :Starting Wordle game\r\n", 41, 0);
-					usleep(50000);
+					std::string startMsg = "PRIVMSG #CHANNEL :Starting Wordle game\r\n";
+					int bytesSent = send(sock, startMsg.c_str(), startMsg.length(), 0);
+					if (bytesSent < 0)
+						std::cerr << "Error sending message: " << strerror(errno) << std::endl;
+					else
+						std::cout << "Message sent: " << MakeVisible(startMsg) << std::endl;
 					gameStarted = true;
 					continue;
 				}
 				result = wordleGame.playWordle(content);
-				std::string msg;
-				msg = "PRIVMSG #CHANNEL :" + result + "\r\n";
+				std::string msg = "PRIVMSG #CHANNEL :" + result + "\r\n";
 				if (result == "YOU WIN!")
 				{
-					send(sock, "PRIVMSG #CHANNEL :You win!\r\n", 29, 0);
-					usleep(50000);
+					int bytesSent = send(sock, "PRIVMSG #CHANNEL :You win!\r\n", 29, 0);
+					if (bytesSent < 0)
+					{
+						std::cerr << "Error sending message: " << strerror(errno) << std::endl;
+					}
 					gameStarted = false;
 				}
 				else
 				{
-					size_t i;
-					for (i = 0; i < msg.length(); i++)
-						if (msg[i] == '\0')
-							msg.erase(i, 1);
-					i = 0;
-					std::cout << "Sending: " << MakeVisible(msg) << std::endl;
-					std::cout << "SOCKET: " << sock << std::endl;
-					std::cout << "LENGTH: " << msg.length() << std::endl;
-					send(sock, msg.c_str(), msg.length(), 0);
+					std::cout << msg << std::endl;
+					int bytesSent = send(sock, msg.c_str(), msg.length(), 0);
+					if (bytesSent < 0)
+					{
+						std::cerr << "Error sending message: " << strerror(errno) << std::endl;
+					}
 				}
-
 			}
 		}
 	}
