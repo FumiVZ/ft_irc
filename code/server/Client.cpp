@@ -67,14 +67,9 @@ bool Client::isConnected(int socketfd)
 	int result = recv(socketfd, &tmp, 1, MSG_PEEK | MSG_DONTWAIT);
 
 	if (result == 0)
-	{
 		return false;
-	}
 	else if (result < 0)
-	{
 		return (errno == EAGAIN || errno == EWOULDBLOCK);
-	}
-
 	return true;
 }
 void Client::addChannel(Channel *channel) { this->channels.push_back(channel); }
