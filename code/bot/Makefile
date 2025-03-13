@@ -1,13 +1,14 @@
-NAME            = a.out
+NAME            = bot
 
 CC                      = c++
 CFLAGS          = -Wall -Wextra -Werror -std=c++98
 
 BUILD_DIR       = build
 
-SRC                     = $(wildcard *.cpp)
+SRC                     = main.cpp \
+	Wordle.cpp
 
-HEADER          = $(wildcard *.hpp)
+HEADER          = Wordle.hpp
 
 OBJ                     = $(SRC:%.cpp=$(BUILD_DIR)/%.o)
 
