@@ -76,12 +76,20 @@ $(BUILD_DIR)/$(SRCS_DIR)%.o: $(SRCS_DIR)%.cpp $(ALL_HEADERS)
 clean:
 	@rm -rf $(BUILD_DIR)
 	@echo "Clean complete"
+	@make clean -C code/bot
 
 fclean: clean
 	@rm -rf $(NAME)
 	@echo "Full clean complete"
+	@make fclean -C code/bot
+	@rm -rf bot
 
 re: fclean all
+
+bot:
+	make -C code/bot
+	@mv code/bot/bot .
+	@echo "Bot Compiled!"
 
 -include $(DEPS)
 
