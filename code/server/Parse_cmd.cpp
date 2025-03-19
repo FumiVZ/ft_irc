@@ -11,16 +11,16 @@ void parseCommand(Server &server, int clientSocket, Message message)
 	size_t i = 0;
 	Client &client = server.getClient(clientSocket);
 	const char *commands[] = {
-		"NICK",	   // done
-		"USER",	   // done
-		"PASS",	   // done
-		"MODE",	   // done need to tests
-		"QUIT",	   // done
-		"JOIN",	   // done need to tests
-		"TOPIC",   // done need to tests
-		"KICK",	   // done
-		"PRIVMSG", // done
-		"INVITE",  // done need to tests
+		"NICK",
+		"USER",
+		"PASS",
+		"MODE",
+		"QUIT",
+		"JOIN",
+		"TOPIC",
+		"KICK",
+		"PRIVMSG",
+		"INVITE",
 	};
 	void (*functions[])(Server &, int, Message) = {
 		&nick,

@@ -94,12 +94,6 @@ void Channel::broadcast(Client &c, std::string msg)
 	}
 }
 
-// MODE <channel>  <mode> <+/-> <~nickname>
-/*— t : Définir/supprimer les restrictions de la commande TOPIC pour les opé-
-rateurs de canaux
-— k : Définir/supprimer la clé du canal (mot de passe)
-— o : Donner/retirer le privilège de l’opérateur de canal
-— l : Définir/supprimer la limite d’utilisateurs pour le canal*/
 void Channel::addClient(Client &c)
 {
 	if (clients.size() < limit  || limit == 0)

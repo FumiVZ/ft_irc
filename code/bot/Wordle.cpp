@@ -18,9 +18,7 @@ Wordle::Wordle()
 		std::cerr << "Failed to open words files";
 		return;
 	}
-	std::cerr << "Failed to open words.txt" << std::endl;
 	this->Word = randomword();
-	std::cout << "Word to guess: " << this->Word << std::endl;
 }
 
 Wordle::~Wordle()
