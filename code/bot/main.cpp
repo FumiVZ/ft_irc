@@ -131,6 +131,8 @@ int main(int ac, char **av)
 	send(sock, join.c_str(), join.length(), 0);
 	usleep(50000);
 	Wordle wordleGame;
+	if (wordleGame.getWord().empty())
+		return 1;
 	bool gameStarted = false;
 	std::string result;
 	while (g_signal)

@@ -8,7 +8,17 @@
 Wordle::Wordle()
 {
 	std::srand(static_cast<unsigned int>(std::time(0)));
-	populateVector();
+	try
+	{
+		populateVector();
+	}
+	catch (std::exception &e)
+	{
+		this->Word = "";
+		std::cerr << "Failed to open words files";
+		return;
+	}
+	std::cerr << "Failed to open words.txt" << std::endl;
 	this->Word = randomword();
 	std::cout << "Word to guess: " << this->Word << std::endl;
 }
@@ -20,7 +30,7 @@ Wordle::~Wordle()
 void Wordle::populateVector()
 {
 	std::string line;
-	std::ifstream myfile("words.txt");
+	std::ifstream myfile("./code/bot/words.txt");
 	if (myfile.is_open())
 	{
 		while (getline(myfile, line))
@@ -30,14 +40,9 @@ void Wordle::populateVector()
 		myfile.close();
 	}
 	else
-	{
 		throw std::runtime_error("Unable to open words.txt");
-	}
-
 	if (wordbase.empty())
-	{
 		throw std::runtime_error("No words loaded from file");
-	}
 }
 
 std::string Wordle::randomword()
