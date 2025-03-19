@@ -132,7 +132,11 @@ int main(int ac, char **av)
 	usleep(50000);
 	Wordle wordleGame;
 	if (wordleGame.getWord().empty())
+	{
+		std::cerr << "Failed to open file";
+		close(sock);
 		return 1;
+	}
 	bool gameStarted = false;
 	std::string result;
 	while (g_signal)
@@ -163,8 +167,6 @@ int main(int ac, char **av)
 					int bytesSent = send(sock, startMsg.c_str(), startMsg.length(), 0);
 					if (bytesSent < 0)
 						std::cerr << "Error sending message: " << strerror(errno) << std::endl;
-					else
-						std::cout << "Message sent: " << MakeVisible(startMsg) << std::endl;
 					gameStarted = true;
 					continue;
 				}

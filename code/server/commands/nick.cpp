@@ -22,7 +22,6 @@ bool is_valid_nickname(const std::string &nickname)
 
 void nick(Server &server, int clientSocket, Message message)
 {
-	std::cout << "SIZE " << message.getParameters().size() << std::endl;
 	Client &client = server.getClient(clientSocket);
 	if (message.getParameters().size() != 1)
 	{

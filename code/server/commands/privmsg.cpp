@@ -2,7 +2,6 @@
 
 void privmsg(Server &server, int clientSocket, Message message)
 {
-	std::cout << message << std::endl;
 	Client &client = server.getClient(clientSocket);
 	if (message.getParameters().size() < 1)
 	{
