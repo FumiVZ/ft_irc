@@ -85,7 +85,7 @@ int main(int ac, char **av)
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock < 0)
 	{
-		std::cerr << "Erreur création socket" << std::endl;
+		std::cerr << "Error at the creation of socket" << std::endl;
 		return 1;
 	}
 	struct sockaddr_in serverAddr;
@@ -95,15 +95,15 @@ int main(int ac, char **av)
 
 	if (connect(sock, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0)
 	{
-		std::cerr << "Erreur connexion" << std::endl;
+		std::cerr << "Connection Error" << std::endl;
 		close(sock);
 		return 1;
 	}
 
-	std::cout << "Connecté au serveur IRC local" << std::endl;
+	std::cout << "Connected to the IRC server!" << std::endl;
 	const char *password = av[1];
-	const char *nickname = "MonBot";
-	const char *user = "monbot 0 * :monbot\r\n";
+	const char *nickname = "MyBot";
+	const char *user = "mybot 0 * :mybot\r\n";
 	std::string pass = "PASS " + std::string(password) + "\r\n";
 	std::string nick = "NICK " + std::string(nickname) + "\r\n";
 	std::string usr = "USER " + std::string(user) + "\r\n";
@@ -121,8 +121,14 @@ int main(int ac, char **av)
 		{
 			if (strstr(buffer, "001") != NULL)
 			{
-				std::cout << "Connecté avec succès!" << std::endl;
+				std::cout << "Connected with sucess!" << std::endl;
 				connected = true;
+			}
+			else
+			{
+				std::cerr << "I think bot is already connected ";
+				close(sock);
+				return (1);
 			}
 		}
 		usleep(50000);
