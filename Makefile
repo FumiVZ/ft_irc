@@ -93,4 +93,4 @@ bot:
 
 -include $(DEPS)
 
-.PHONY: all clean fclean re Makefile
+.PHONY: all clean fclean re bot Makefile
