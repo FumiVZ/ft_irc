@@ -6,8 +6,6 @@
 #include <string>
 #include <stdexcept>
 
-#define USERLEN 12
-
 class Channel;
 class Client
 {

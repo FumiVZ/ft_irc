@@ -173,10 +173,10 @@ bool pass(Server &server, int clientSocket, const char *password)
 	Client &client = server.getClient(clientSocket);
 
 	std::cout << "Password: " << password << std::endl;
-	for (int i = 0; password[i] != '\0'; i++)
+	if (strlen(password) != server.getPasswd().size())
 	{
-		if (password[i] != server.getPasswd()[i])
-			std::cout << "password[i]: " << static_cast<int>(password[i]) << " server.getPasswd()[i]: " << server.getPasswd()[i] << std::endl;
+		client.sendReply("464", (client.getNickname().empty() ? "* " : client.getUsername()) + " :" + ERR_PASSWDMISMATCH);
+		return false;
 	}
 	if (strcmp(password, server.getPasswd().c_str()) == 0)
 	{
